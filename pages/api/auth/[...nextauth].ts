@@ -17,6 +17,13 @@ interface User {
  */
 export interface OwGroup {
   type: string;
+  recruitmentMethod:
+    | "NONE"
+    | "SPRING_APPLICATION"
+    | "AUTUMN_APPLICATION"
+    | "GENERAL_ASSEMBLY"
+    | "NOMINATION"
+    | "OTHER";
   slug: string;
   abbreviation: string;
   name: string;

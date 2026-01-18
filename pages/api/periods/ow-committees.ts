@@ -33,20 +33,12 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
       JSON.stringify((await committeeResponse.json()).result.data),
     );
 
-    // TODO: Seems like a workaround, should be handled in OW API?
-    const excludedCommitteeSlugs = ["hs", "faddere", "itex", "fond", "debug"];
-
     // TODO: Ta med komité-id (finnes det i det hele tatt?)
-    // TODO: Bytt til å filtrere på dedikert "har opptak" felt
     const committees: OwCommittee[] = committeeData
       .filter(
         (group: OwGroup) =>
-          group.type == "COMMITTEE" ||
-          group.type == "NODE_COMMITTEE" ||
-          group.slug == "output",
-      )
-      .filter(
-        (group: OwGroup) => !excludedCommitteeSlugs.includes(group.slug), // Exclude committees by name_short
+          group.recruitmentMethod == "SPRING_APPLICATION" ||
+          group.recruitmentMethod == "AUTUMN_APPLICATION",
       )
       .map((group: OwGroup) => ({
         name_short: group.abbreviation,
