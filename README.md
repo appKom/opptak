@@ -54,6 +54,8 @@ Open <http://localhost:3000> with your browser to see the result.
 
 ### Running the matching algorithm
 
+*See also https://github.com/appKom/intervjumatching for the implementation of the matching algorithm.*
+
 Setup Python virtual environment:
 
 ```bash
