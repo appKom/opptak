@@ -35,7 +35,7 @@ export default function Footer() {
         <div className="flex flex-col items-center justify-between mb-8 space-y-8 md:flex-row md:space-y-0">
           <div className="flex flex-col items-center space-y-4 md:items-start">
             <h2 className="text-2xl font-bold">Online Opptak</h2>
-            <a href="mailto:onlinefondet@online.ntnu.no" className="flex items-center gap-2 transition-colors cursor-pointer hover:text-online-orange">
+            <a href="mailto:appkom@online.ntnu.no" className="flex items-center gap-2 transition-colors cursor-pointer hover:text-online-orange">
               <Mail size={18} />
               appkom@online.ntnu.no
             </a>
