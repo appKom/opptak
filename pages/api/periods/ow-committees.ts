@@ -1,11 +1,9 @@
 import { NextApiRequest, NextApiResponse } from "next";
-import { authOptions } from "../auth/[...nextauth]";
 import { getServerSession } from "next-auth";
-import { hasSession } from "../../../lib/utils/apiChecks";
-import SuperJSON from "superjson";
+import { getCommitteesFromOw } from "../../../lib/ow/committees";
 import { OwGroup } from "../../../lib/types/types";
-
-const API_BASE_URL = "https://rpc.online.ntnu.no/api/trpc";
+import { hasSession } from "../../../lib/utils/apiChecks";
+import { authOptions } from "../auth/[...nextauth]";
 
 const handler = async (req: NextApiRequest, res: NextApiResponse) => {
   const session = await getServerSession(req, res, authOptions);
@@ -18,27 +16,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
   }
 
   try {
-    const commiteeUrl = `${API_BASE_URL}/group.all`;
-
-    const committeeResponse = await fetch(commiteeUrl, {
-      method: "GET", // GET works for read queries
-      headers: { "content-type": "application/json" },
-    });
-
-    if (!committeeResponse.ok) {
-      throw new Error("Failed to fetch committees");
-    }
-
-    const committeeData: OwGroup[] = SuperJSON.parse(
-      JSON.stringify((await committeeResponse.json()).result.data),
-    );
-
-    // TODO: Ta med komité-id (finnes det i det hele tatt?)
-    const committees: OwGroup[] = committeeData.filter(
-      (group: OwGroup) =>
-        group.recruitmentMethod == "SPRING_APPLICATION" ||
-        group.recruitmentMethod == "AUTUMN_APPLICATION",
-    );
+    const committees: OwGroup[] = await getCommitteesFromOw();
 
     return res.status(200).json(committees);
 

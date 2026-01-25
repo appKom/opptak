@@ -1,16 +1,15 @@
-import { fetchOwCommittees } from "../api/committeesApi";
 import { getApplicationByMongoId } from "../mongo/applicants";
 import { getCommitteesByPeriod } from "../mongo/committees";
 import { getInterviewsByPeriod } from "../mongo/interviews";
 import { getPeriodById, markInterviewsSentByPeriodId } from "../mongo/periods";
+import { getCommitteesFromOw } from "../ow/committees";
 import {
+  algorithmType,
   committeeEmails,
-  committeeInterviewType,
+  committeePreferenceType,
   emailApplicantInterviewType,
   emailCommitteeInterviewType,
   periodType,
-  algorithmType,
-  committeePreferenceType,
 } from "../types/types";
 import { formatAndSendEmails } from "./formatAndSend";
 
@@ -34,9 +33,7 @@ export const sendOutInterviewTimes = async ({
       return { error: "Failed to find committee interview times" };
     }
 
-    const committeeInterviewTimes = committeeInterviewTimesData.result || [];
-
-    const committeeEmails = (await fetchOwCommittees()).map((committee) => ({
+    const committeeEmails = (await getCommitteesFromOw()).map((committee) => ({
       name_short: committee.abbreviation,
       email: committee.email,
     }));
