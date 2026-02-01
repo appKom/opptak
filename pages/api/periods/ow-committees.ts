@@ -19,8 +19,6 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
     const committees: OwGroup[] = await getCommitteesFromOw();
 
     return res.status(200).json(committees);
-
-    return res.status(200).json(committees);
   } catch (error) {
     console.error(error);
     return res.status(500).json({ error: "An error occurred" });
