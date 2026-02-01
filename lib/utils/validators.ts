@@ -5,9 +5,20 @@ import {
   preferencesType,
 } from "../types/types";
 
+export const isPreferencesType = (
+  preferences: any,
+): preferences is preferencesType => {
+  return (
+    preferences &&
+    typeof preferences.first === "string" &&
+    typeof preferences.second === "string" &&
+    typeof preferences.third === "string"
+  );
+};
+
 export const isApplicantType = (
   applicant: applicantType,
-  period: periodType
+  period: periodType,
 ): applicant is applicantType => {
   // Check for each basic property type
   const applicantPeriodId = applicant.periodId.toString();
@@ -30,7 +41,7 @@ export const isApplicantType = (
 
   // Check that the preferences object exists and contains the required fields
   const periodCommittees = period.committees.map((committee) =>
-    committee.toLowerCase()
+    committee.toLowerCase(),
   );
 
   const { first, second, third } = applicant.preferences as preferencesType;
@@ -66,11 +77,11 @@ export const isApplicantType = (
         new Date(time.start) <= interviewPeriodEnd &&
         new Date(time.end) <= interviewPeriodEnd &&
         new Date(time.end) >= interviewPeriodStart &&
-        new Date(time.start) < new Date(time.end)
+        new Date(time.start) < new Date(time.end),
     );
 
   const periodOptionalCommittees = period.optionalCommittees.map((committee) =>
-    committee.toLowerCase()
+    committee.toLowerCase(),
   );
 
   const hasOptionalFields =
@@ -79,7 +90,7 @@ export const isApplicantType = (
     applicantOptionalCommittees.every(
       (committee: any) =>
         typeof committee === "string" &&
-        periodOptionalCommittees.includes(committee)
+        periodOptionalCommittees.includes(committee),
     );
 
   return (
@@ -98,7 +109,7 @@ export const isCommitteeType = (data: any): data is committeeInterviewType => {
     Array.isArray(data.availabletimes) &&
     data.availabletimes.every(
       (time: { start: string; end: string }) =>
-        typeof time.start === "string" && typeof time.end === "string"
+        typeof time.start === "string" && typeof time.end === "string",
     );
 
   return hasBasicFields;
@@ -112,7 +123,7 @@ export const validateCommittee = (data: any, period: periodType): boolean => {
     Array.isArray(data.availabletimes) &&
     data.availabletimes.every(
       (time: { start: string; end: string }) =>
-        typeof time.start === "string" && typeof time.end === "string"
+        typeof time.start === "string" && typeof time.end === "string",
     );
 
   const isPeriodNameValid = data.periodId === String(period._id);
@@ -139,7 +150,7 @@ export const validateCommittee = (data: any, period: periodType): boolean => {
         endTime >= new Date(period.interviewPeriod.start) &&
         startTime < endTime
       );
-    }
+    },
   );
 
   return (
@@ -171,7 +182,7 @@ export const isPeriodType = (data: any): data is periodType => {
 
   const arePeriodsValid = (
     applicationPeriod: any,
-    interviewPeriod: any
+    interviewPeriod: any,
   ): boolean => {
     return (
       isChronological(applicationPeriod.start, applicationPeriod.end) &&
