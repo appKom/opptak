@@ -80,7 +80,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
 
     if (req.method === "PUT") {
       const requestBody: applicantType = req.body;
-      requestBody.date = new Date(new Date().getTime() + 60 * 60 * 2000); // add date with norwegain time (GMT+2)
+      requestBody.date = new Date(new Date().getTime() + 60 * 60 * 2000); // add date with norwegian time (GMT+2). TODO: Fix workaround in #415
 
       // Remove _id field to prevent MongoDB immutable field error
       if ("_id" in requestBody) {
