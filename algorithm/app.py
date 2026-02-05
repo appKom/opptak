@@ -39,16 +39,14 @@ def main():
     if push_to_db:
         send_to_db(match_result, applicants, period_id)
         print("Meetings sent to database")
-
-    if push_to_db:
-        return format_match_results(match_result, applicants, period_id)
-    else:
-        result = {
-            "status": str(match_result["solver_status"]),
-            "total_wanted_meetings": match_result["total_wanted_meetings"],
-            "matched_meetings": match_result["matched_meetings"]
-        }
-        return result
+        
+    result = {
+        "status": str(match_result["solver_status"]),
+        "total_wanted_meetings": match_result["total_wanted_meetings"],
+        "matched_meetings": match_result["matched_meetings"],
+        "results": format_match_results(match_result, applicants, period_id)
+    }
+    return result
 
 
 
