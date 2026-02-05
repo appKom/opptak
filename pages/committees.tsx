@@ -11,6 +11,7 @@ import { UsersIcon } from "@heroicons/react/24/outline";
 import { Tabs } from "../components/Tabs";
 import { UserIcon, BellAlertIcon } from "@heroicons/react/24/solid";
 import { shuffleList, partition } from "../lib/utils/arrays";
+import { isAfterOrEqual, isBeforeOrEqual } from "../lib/utils/dateUtils";
 
 // Page Component
 export default function Committees() {
@@ -103,17 +104,17 @@ export default function Committees() {
           },
           ...(committeesInActivePeriod.length > 0
             ? [
-                {
-                  title: "Har opptak",
-                  icon: <BellAlertIcon className="w-5 h-5" />,
-                  content: (
-                    <CommitteeList
-                      committees={committeesInActivePeriod}
-                      periods={periods}
-                    />
-                  ),
-                },
-              ]
+              {
+                title: "Har opptak",
+                icon: <BellAlertIcon className="w-5 h-5" />,
+                content: (
+                  <CommitteeList
+                    committees={committeesInActivePeriod}
+                    periods={periods}
+                  />
+                ),
+              },
+            ]
             : []),
         ]}
       />
@@ -165,12 +166,12 @@ const committeeIsInActivePeriod = (
 ) => {
   if (!Array.isArray(periods)) return false;
 
-  const today = new Date();
+  const now = new Date();
 
   const activePeriods = periods.filter((period) => {
-    const applicationStart = new Date(period.applicationPeriod.start);
-    const applicationEnd = new Date(period.applicationPeriod.end);
-    return applicationStart <= today && applicationEnd >= today;
+    const applicationStart = period.applicationPeriod.start;
+    const applicationEnd = period.applicationPeriod.end;
+    return isBeforeOrEqual(applicationStart, now) && isAfterOrEqual(applicationEnd, now);
   });
 
   // Bankom is always active, since you can be a representative of bankom from each committee
@@ -191,12 +192,12 @@ const committeeIsCurrentlyInterviewing = (
 ) => {
   if (!Array.isArray(periods)) return false;
 
-  const today = new Date();
+  const now = new Date();
 
   const periodsWithInterviewsCurrently = periods.filter((period) => {
-    const interviewStart = new Date(period.interviewPeriod.start);
-    const interviewEnd = new Date(period.interviewPeriod.end);
-    return interviewStart <= today && interviewEnd >= today;
+    const interviewStart = period.interviewPeriod.start;
+    const interviewEnd = period.interviewPeriod.end;
+    return isBeforeOrEqual(interviewStart, now) && isAfterOrEqual(interviewEnd, now);
   });
 
   // Bankom is always active, since you can be a representative of bankom from each committee

@@ -4,6 +4,10 @@ export type DeepPartial<T> = {
   [P in keyof T]?: T[P] extends object ? DeepPartial<T[P]> : T[P];
 };
 
+export type Nullable<T> = {
+  [K in keyof T]: T[K] | null;
+}
+
 export type preferencesType = {
   first: string;
   second: string;
@@ -27,8 +31,8 @@ export type applicantType = {
   optionalCommittees: string[];
   selectedTimes: [
     {
-      start: string;
-      end: string;
+      start: Date;
+      end: Date;
     },
   ];
   date: Date;
@@ -69,8 +73,8 @@ export type periodType = {
 };
 
 export type AvailableTime = {
-  start: string;
-  end: string;
+  start: Date;
+  end: Date;
   room: string;
 };
 
@@ -80,7 +84,7 @@ export type committeeInterviewType = {
   committee: string;
   committeeEmail: string;
   availabletimes: AvailableTime[];
-  timeslot: string;
+  timeslot: string; // duration of each interview in minutes
   message: string;
 };
 
@@ -110,8 +114,8 @@ export interface OwGroup {
 export type algorithmType = {
   applicantId: string;
   interviews: {
-    start: string;
-    end: string;
+    start: Date;
+    end: Date;
     committeeName: string;
     room: string;
   }[];
@@ -132,8 +136,8 @@ export type emailCommitteeInterviewType = {
     applicantPhone: string;
     applicantEmail: string;
     interviewTime: {
-      start: string;
-      end: string;
+      start: Date;
+      end: Date;
       room: string;
     };
   }[];
@@ -149,8 +153,8 @@ export type emailApplicantInterviewType = {
     committeeName: string;
     committeeEmail: string;
     interviewTime: {
-      start: string;
-      end: string;
+      start: Date;
+      end: Date;
       room: string;
     };
   }[];

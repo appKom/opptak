@@ -71,8 +71,8 @@ export const validateApplication = (applicationData: any) => {
   }
 
   for (const time of selectedTimes) {
-    const startTime = new Date(time.start);
-    const endTime = new Date(time.end);
+    const startTime = time.start;
+    const endTime = time.end;
     if (isNaN(startTime.getTime()) || isNaN(endTime.getTime())) {
       toast.error("Ugyldig start- eller sluttid");
       return false;

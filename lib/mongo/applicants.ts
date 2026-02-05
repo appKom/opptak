@@ -1,7 +1,8 @@
 import { Collection, Db, MongoClient, ObjectId } from "mongodb";
 import clientPromise from "./mongodb";
-import { applicantType, periodType, preferencesType } from "../types/types";
+import { applicantType, Nullable, periodType, preferencesType } from "../types/types";
 import { getPeriodById } from "./periods";
+import { addDays, isAfter } from 'date-fns';
 
 let client: MongoClient;
 let db: Db;
@@ -153,7 +154,7 @@ export const getApplicantsForCommittee = async (
     // Filtrerer søkerne slik at kun brukere som er i komiteen som har blitt søkt på ser søkeren
     // Fjerner prioriterings informasjon
     const filteredApplicants = result
-      .map((applicant) => {
+      .map((applicant: Nullable<applicantType>) => {
         let preferencesArray: string[] = [];
         if (isPreferencesType(applicant.preferences)) {
           preferencesArray = [
@@ -182,24 +183,22 @@ export const getApplicantsForCommittee = async (
 
         applicant.optionalCommittees = [];
 
-        const today = new Date();
-        const sevenDaysAfterInterviewEnd = new Date(period.interviewPeriod.end);
-        sevenDaysAfterInterviewEnd.setDate(
-          sevenDaysAfterInterviewEnd.getDate() + 5
-        );
+        const now = new Date();
+        const sevenDaysAfterInterviewEnd = addDays(period.interviewPeriod.end, 7);
 
+        // Sletter sensitiv informasjon etter intervju perioden + 7 dager, for å forhindre snoking i tidligere søknader
         if (
-          new Date(period.applicationPeriod.end) > today ||
-          today > sevenDaysAfterInterviewEnd
+          isAfter(now, period.applicationPeriod.end) ||
+          isAfter(now, sevenDaysAfterInterviewEnd)
         ) {
-          applicant.owId = "Skjult";
-          applicant.name = "Skjult";
-          applicant.date = today;
-          applicant.phone = "Skjult";
-          applicant.email = "Skjult";
-          applicant.about = "Skjult";
-          applicant.grade = "-";
-          applicant.selectedTimes = [{ start: "Skjult", end: "Skjult" }];
+          applicant.owId = null;
+          applicant.name = null;
+          applicant.phone = null;
+          applicant.grade = null;
+          applicant.email = null;
+          applicant.about = null;
+          applicant.selectedTimes = null;
+          applicant.date = null;
         }
 
         const isSelectedCommitteePresent =

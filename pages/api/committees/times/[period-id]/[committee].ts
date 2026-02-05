@@ -7,6 +7,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "../../../auth/[...nextauth]";
 import { hasSession, isInCommitee } from "../../../../../lib/utils/apiChecks";
 import { getPeriodById } from "../../../../../lib/mongo/periods";
+import { isAfter } from "date-fns";
 
 const handler = async (req: NextApiRequest, res: NextApiResponse) => {
   const session = await getServerSession(req, res, authOptions);
@@ -50,7 +51,9 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
         return res.status(400).json({ error: "Invalid periodId" });
       }
 
-      if (new Date() > new Date(period.applicationPeriod.end)) {
+      const now = new Date();
+
+      if (isAfter(now, period.interviewPeriod.end)) {
         return res.status(400).json({ error: "Application period has ended" });
       }
 

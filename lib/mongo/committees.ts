@@ -1,4 +1,4 @@
-import { Collection, Db, MongoClient, ObjectId, UpdateResult } from "mongodb";
+import { Collection, Db, MongoClient, ObjectId } from "mongodb";
 import clientPromise from "./mongodb";
 import { committeeInterviewType } from "../types/types";
 

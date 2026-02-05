@@ -4,7 +4,7 @@ import { useSession } from "next-auth/react";
 import FullCalendar from "@fullcalendar/react";
 import timeGridPlugin from "@fullcalendar/timegrid";
 import interactionPlugin from "@fullcalendar/interaction";
-import { periodType, committeeInterviewType } from "../../lib/types/types";
+import { periodType, committeeInterviewType, AvailableTime } from "../../lib/types/types";
 import toast from "react-hot-toast";
 import NotFound from "../../pages/404";
 import Button from "../Button";
@@ -19,8 +19,8 @@ import { XMarkIcon } from "@heroicons/react/24/solid";
 interface Interview {
   id: string;
   title: string;
-  start: string;
-  end: string;
+  start: Date;
+  end: Date;
 }
 
 interface Props {
@@ -63,8 +63,8 @@ const CommitteeInterviewTimes = ({
   useEffect(() => {
     if (period) {
       setVisibleRange({
-        start: new Date(period!.interviewPeriod.start).toISOString(),
-        end: new Date(period!.interviewPeriod.end).toISOString(),
+        start: period.interviewPeriod.start.toISOString(),
+        end: period.interviewPeriod.end.toISOString(),
       });
     }
   }, [period]);
@@ -98,11 +98,11 @@ const CommitteeInterviewTimes = ({
       if (cleanCommittee === cleanSelectedCommittee) {
         setHasAlreadySubmitted(true);
         const events = committeeInterviewTimes.availabletimes.map(
-          (at: any) => ({
+          (availableTime: AvailableTime) => ({
             id: crypto.getRandomValues(new Uint32Array(1))[0].toString(),
-            title: at.room,
-            start: new Date(at.start).toISOString(),
-            end: new Date(at.end).toISOString(),
+            title: availableTime.room,
+            start: availableTime.start.toISOString(),
+            end: availableTime.end.toISOString(),
           })
         );
 
@@ -262,17 +262,12 @@ const CommitteeInterviewTimes = ({
     );
   };
 
-  const formatEventsForExport = (events: Interview[]) => {
-    return events.map((event) => {
-      const startDateTime = new Date(event.start);
-      const endDateTime = new Date(event.end);
-      return {
+  const formatEventsForExport = (events: Interview[]) => 
+    events.map((event) => ({
         room: event.title,
-        start: startDateTime.toISOString(),
-        end: endDateTime.toISOString(),
-      };
-    });
-  };
+        start: event.start.toISOString(),
+        end: event.end.toISOString(),
+    }));
 
   const handleTimeslotSelection = (e: React.ChangeEvent<HTMLSelectElement>) => {
     setSelectedTimeslot(e.target.value);

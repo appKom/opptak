@@ -9,6 +9,7 @@ import {
 } from "../../../../../lib/utils/validators";
 import { getPeriodById } from "../../../../../lib/mongo/periods";
 import { committeeInterviewType } from "../../../../../lib/types/types";
+import { isAfter } from "date-fns";
 
 const handler = async (req: NextApiRequest, res: NextApiResponse) => {
   const session = await getServerSession(req, res, authOptions);
@@ -35,7 +36,9 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
       return res.status(400).json({ error: "Invalid periodId" });
     }
 
-    if (new Date() > new Date(period.applicationPeriod.end)) {
+    const now = new Date();
+
+    if (isAfter(now, period.interviewPeriod.end)) {
       return res.status(400).json({ error: "Application period has ended" });
     }
 

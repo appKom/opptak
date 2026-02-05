@@ -7,10 +7,10 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "../../auth/[...nextauth]";
 import {
   hasSession,
-  isAdmin,
   checkOwId,
 } from "../../../../lib/utils/apiChecks";
 import { getPeriodById } from "../../../../lib/mongo/periods";
+import { isBefore } from "date-fns";
 
 const handler = async (req: NextApiRequest, res: NextApiResponse) => {
   const session = await getServerSession(req, res, authOptions);
@@ -40,9 +40,9 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
       }
       return res.status(200).json({ exists, application });
     } else if (req.method === "DELETE") {
-      const currentDate = new Date().toISOString();
+      const now = new Date();
 
-      if (new Date(period.applicationPeriod.end) < new Date(currentDate)) {
+      if (isBefore(period.applicationPeriod.end, now)) {
         return res.status(403).json({ error: "Application period is over" });
       }
 

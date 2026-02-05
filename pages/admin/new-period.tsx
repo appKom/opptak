@@ -83,14 +83,14 @@ const NewPeriod = () => {
     start,
     end,
   }: {
-    start: string;
-    end: string;
+    start: Date;
+    end: Date;
   }) => {
     setPeriodData((prevData) => ({
       ...prevData,
       applicationPeriod: {
-        start: start ? new Date(start) : undefined,
-        end: end ? new Date(end) : undefined,
+        start: start,
+        end: end,
       },
     }));
   };
@@ -99,14 +99,14 @@ const NewPeriod = () => {
     start,
     end,
   }: {
-    start: string;
-    end: string;
+    start: Date;
+    end: Date;
   }) => {
     setPeriodData((prevData) => ({
       ...prevData,
       interviewPeriod: {
-        start: start ? new Date(start) : undefined,
-        end: end ? new Date(end) : undefined,
+        start: start,
+        end: end,
       },
     }));
   };

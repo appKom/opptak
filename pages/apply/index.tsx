@@ -7,6 +7,7 @@ import { fetchPeriods } from "../../lib/api/periodApi";
 import { periodType } from "../../lib/types/types";
 import { PeriodSkeletonPage } from "../../components/PeriodSkeleton";
 import { SimpleTitle } from "../../components/Typography";
+import { isAfterOrEqual, isBeforeOrEqual } from "../../lib/utils/dateUtils";
 
 const Apply = () => {
   const [currentPeriods, setCurrentPeriods] = useState<periodType[]>([]);
@@ -24,23 +25,19 @@ const Apply = () => {
   useEffect(() => {
     if (!periodsData) return;
 
-    const today = new Date();
+    const now = new Date();
 
     setCurrentPeriods(
       periodsData.periods.filter((period: periodType) => {
-        const startDate = new Date(period.applicationPeriod.start || "");
-        const endDate = new Date(period.applicationPeriod.end || "");
+        const startDate = period.applicationPeriod.start;
+        const endDate = period.applicationPeriod.end;
 
-        return startDate <= today && endDate >= today;
+        return isBeforeOrEqual(startDate, now) && isAfterOrEqual(endDate, now);
       })
     );
 
     setUpcomingPeriods(
-      periodsData.periods.filter((period: periodType) => {
-        const startDate = new Date(period.applicationPeriod.start || "");
-
-        return startDate >= today
-      })
+      periodsData.periods.filter((period: periodType) => isAfterOrEqual(period.applicationPeriod.start, now))
     )
   }, [periodsData]);
 

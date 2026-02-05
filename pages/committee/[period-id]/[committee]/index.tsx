@@ -9,7 +9,6 @@ import { useRouter } from "next/router";
 import ApplicantsOverview from "../../../../components/applicantoverview/ApplicantsOverview";
 import {
   CalendarIcon,
-  InboxIcon,
   UserGroupIcon,
 } from "@heroicons/react/24/solid";
 import { Tabs } from "../../../../components/Tabs";
@@ -23,6 +22,7 @@ import { fetchPeriodById } from "../../../../lib/api/periodApi";
 import ErrorPage from "../../../../components/ErrorPage";
 import { fetchCommitteeTimes } from "../../../../lib/api/committeesApi";
 import { MainTitle, SimpleTitle } from "../../../../components/Typography";
+import { addDays, isBefore } from "date-fns";
 
 const CommitteeApplicantOverview: NextPage = () => {
   const { data: session } = useSession();
@@ -82,15 +82,11 @@ const CommitteeApplicantOverview: NextPage = () => {
   if (periodIsError || interviewTimesIsError) return <ErrorPage />;
   if (!hasAccess) return <Custom404 />;
 
-  const interviewPeriodEnd = period?.interviewPeriod.end
-    ? new Date(period.interviewPeriod.end)
-    : null;
-
   // Satt frist til 14 dager etter intervju perioden, så får man ikke tilgang
-  const interviewAccessExpired =
-    interviewPeriodEnd &&
-    interviewPeriodEnd.getTime() + 14 * 24 * 60 * 60 * 1000 <
-      new Date().getTime();
+
+  const now = new Date();
+  const fourteenDaysAfterInterview = addDays(period.interviewPeriod.end, 14);
+  const interviewAccessExpired = isBefore(fourteenDaysAfterInterview, now);
 
   if (interviewAccessExpired) {
     return (

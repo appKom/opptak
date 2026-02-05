@@ -25,6 +25,7 @@ import {
 import ErrorPage from "../../components/ErrorPage";
 import { MainTitle, SimpleTitle } from "../../components/Typography";
 import { getCommitteeDisplayNameFactory } from "../../lib/utils/getCommitteeDisplayNameFactory";
+import { isBefore } from "date-fns";
 
 const Application: NextPage = () => {
   const queryClient = useQueryClient();
@@ -116,9 +117,9 @@ const Application: NextPage = () => {
 
     setPeriod(periodData.period);
 
-    const currentDate = new Date().toISOString();
+    const now = new Date();
     if (
-      new Date(periodData.period.applicationPeriod.end) < new Date(currentDate)
+      isBefore(periodData.period.applicationPeriod.end, now)
     ) {
       setIsApplicationPeriodOver(true);
     }
@@ -160,7 +161,7 @@ const Application: NextPage = () => {
     return <LoadingPage />;
   if (periodIsError || applicantIsError) return <ErrorPage />;
 
-  if (!periodData?.exists)
+  if (!periodData?.exists || !period)
     return <SimpleTitle title="Opptaket finnes ikke" size="large" />;
 
   if (fetchedApplicationData?.exists)
@@ -173,7 +174,7 @@ const Application: NextPage = () => {
         </p>
         <p className="max-w-md text-lg text-center">
           Du vil få enda en e-post med intervjutider når søknadsperioden er over
-          (rundt {formatDateNorwegian(period?.applicationPeriod?.end)}).
+          (rundt {formatDateNorwegian(period?.applicationPeriod.end)}).
         </p>
         <p className="max-w-md text-center text-gray-500">
           (Hvis du ikke finner e-posten din, sjekk søppelpost- eller

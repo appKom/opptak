@@ -4,6 +4,7 @@ import {
   periodType,
   preferencesType,
 } from "../types/types";
+import { isBeforeOrEqual } from "./dateUtils";
 
 export const isApplicantType = (
   applicant: applicantType,
@@ -59,14 +60,12 @@ export const isApplicantType = (
   const hasSelectedTimes =
     Array.isArray(applicant.selectedTimes) &&
     applicant.selectedTimes.every(
-      (time: { start: string; end: string }) =>
-        typeof time.start === "string" &&
-        typeof time.end === "string" &&
-        new Date(time.start) >= interviewPeriodStart &&
-        new Date(time.start) <= interviewPeriodEnd &&
-        new Date(time.end) <= interviewPeriodEnd &&
-        new Date(time.end) >= interviewPeriodStart &&
-        new Date(time.start) < new Date(time.end)
+      (time: { start: Date; end: Date }) =>
+        time.start >= interviewPeriodStart &&
+        time.start <= interviewPeriodEnd &&
+        time.end <= interviewPeriodEnd &&
+        time.end >= interviewPeriodStart &&
+        time.start < time.end
     );
 
   const periodOptionalCommittees = period.optionalCommittees.map((committee) =>
@@ -117,7 +116,8 @@ export const validateCommittee = (data: any, period: periodType): boolean => {
 
   const isPeriodNameValid = data.periodId === String(period._id);
 
-  const isBeforeDeadline = new Date() <= new Date(period.applicationPeriod.end);
+  const now = new Date();
+  const isBeforeDeadline = isBeforeOrEqual(now, period.applicationPeriod.end);
 
   const committeeExists =
     period.committees.some((committee) => {
@@ -128,15 +128,15 @@ export const validateCommittee = (data: any, period: periodType): boolean => {
     });
 
   const isWithinInterviewPeriod = data.availabletimes.every(
-    (time: { start: string; end: string }) => {
-      const startTime = new Date(time.start);
-      const endTime = new Date(time.end);
+    (time: { start: Date; end: Date }) => {
+      const startTime = time.start;
+      const endTime = time.end;
 
       return (
-        startTime >= new Date(period.interviewPeriod.start) &&
-        startTime <= new Date(period.interviewPeriod.end) &&
-        endTime <= new Date(period.interviewPeriod.end) &&
-        endTime >= new Date(period.interviewPeriod.start) &&
+        startTime >= period.interviewPeriod.start &&
+        startTime <= period.interviewPeriod.end &&
+        endTime <= period.interviewPeriod.end &&
+        endTime >= period.interviewPeriod.start &&
         startTime < endTime
       );
     }
@@ -152,21 +152,17 @@ export const validateCommittee = (data: any, period: periodType): boolean => {
 };
 
 export const isPeriodType = (data: any): data is periodType => {
-  const isDateString = (str: any): boolean => {
-    return typeof str === "string" && !isNaN(Date.parse(str));
-  };
+  const isDateDate = (date: any): boolean => {
+    return date instanceof Date && !isNaN(date.getTime());
+  }
 
   const isValidPeriod = (period: any): boolean => {
     return (
       typeof period === "object" &&
       period !== null &&
-      isDateString(period.start) &&
-      isDateString(period.end)
+      isDateDate(period.start) &&
+      isDateDate(period.end)
     );
-  };
-
-  const isChronological = (start: string, end: string): boolean => {
-    return new Date(start) <= new Date(end);
   };
 
   const arePeriodsValid = (
@@ -174,9 +170,9 @@ export const isPeriodType = (data: any): data is periodType => {
     interviewPeriod: any
   ): boolean => {
     return (
-      isChronological(applicationPeriod.start, applicationPeriod.end) &&
-      isChronological(interviewPeriod.start, interviewPeriod.end) &&
-      new Date(applicationPeriod.end) <= new Date(interviewPeriod.start)
+      isBeforeOrEqual(applicationPeriod.start, applicationPeriod.end) &&
+      isBeforeOrEqual(interviewPeriod.start, interviewPeriod.end) &&
+      isBeforeOrEqual(applicationPeriod.end, interviewPeriod.start)
     );
   };
 

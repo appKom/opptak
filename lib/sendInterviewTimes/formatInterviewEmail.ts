@@ -1,3 +1,4 @@
+import { compareAsc } from "date-fns";
 import {
   emailApplicantInterviewType,
   emailCommitteeInterviewType,
@@ -11,25 +12,22 @@ export const formatApplicantInterviewEmail = (
 ) => {
   let emailBody = `<p>Hei <strong>${applicant.applicantName}</strong>,</p><p>Her er dine intervjutider for ${applicant.period_name}:</p><ul><br/>`;
 
-  applicant.committees.sort((a, b) => {
-    return (
-      new Date(a.interviewTime.start).getTime() -
-      new Date(b.interviewTime.start).getTime()
-    );
-  });
+  // Sort committees by interview start time
+  applicant.committees.sort((a, b) => 
+    compareAsc(a.interviewTime.start, b.interviewTime.start)
+  );
 
   applicant.committees.forEach((committee) => {
     emailBody += `<li><b>Komité:</b> ${changeDisplayName(
       committee.committeeName
     )}<br>`;
 
-    if (committee.interviewTime.start !== "Ikke satt") {
+    if (committee.interviewTime.start != null) {
       emailBody += `<b>Tid:</b> ${formatDateHours(
         committee.interviewTime.start,
         committee.interviewTime.end
       )}<br>`;
-    }
-    if (committee.interviewTime.start === "Ikke satt") {
+    } else {
       emailBody += `<b>Tid:</b> Ikke satt. Komitéen vil ta kontakt med deg for å avtale tidspunkt.<br>`;
     }
 
@@ -50,25 +48,21 @@ export const formatCommitteeInterviewEmail = (
     committee.applicants.length
   } søkere:</p><ul>`;
 
-  committee.applicants.sort((a, b) => {
-    return (
-      new Date(a.interviewTime.start).getTime() -
-      new Date(b.interviewTime.start).getTime()
-    );
-  });
+  // Sort applicants by interview start time
+  committee.applicants.sort((a, b) => 
+    compareAsc(a.interviewTime.start, b.interviewTime.start)
+  );
 
   committee.applicants.forEach((applicant) => {
     emailBody += `<li><b>Navn:</b> ${applicant.applicantName}<br>`;
     emailBody += `<b>Telefon:</b> ${applicant.applicantPhone} <br> `;
 
-    if (applicant.interviewTime.start !== "Ikke satt") {
+    if (applicant.interviewTime.start != null) {
       emailBody += `<b>Tid:</b> ${formatDateHours(
         applicant.interviewTime.start,
         applicant.interviewTime.end
       )}<br>`;
-    }
-
-    if (applicant.interviewTime.start === "Ikke satt") {
+    } else {
       emailBody += `<b>Tid:</b> Ikke satt. Ta kontakt med søker for å avtale tidspunkt.`;
     }
     emailBody += `<b>Rom:</b> ${applicant.interviewTime.room}</li><br>`;
