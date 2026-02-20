@@ -25,6 +25,7 @@
     "@trpc/tanstack-react-query": "^11.6.0",
     "@types/mongodb": "^4.0.7",
     "@vercel/analytics": "^1.1.2",
+    "dompurify": "^3.3.1",
     "lucide-react": "^0.441.0",
     "mongodb": "^6.1.0",
     "next": "^14.2.35",

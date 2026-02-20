@@ -1,11 +1,9 @@
 import { NextApiRequest, NextApiResponse } from "next";
-import { authOptions, OwGroup } from "../auth/[...nextauth]";
 import { getServerSession } from "next-auth";
+import { getCommitteesFromOw } from "../../../lib/ow/committees";
+import { OwGroup } from "../../../lib/types/types";
 import { hasSession } from "../../../lib/utils/apiChecks";
-import { OwCommittee } from "../../../lib/types/types";
-import SuperJSON from "superjson";
-
-const API_BASE_URL = "https://rpc.online.ntnu.no/api/trpc";
+import { authOptions } from "../auth/[...nextauth]";
 
 const handler = async (req: NextApiRequest, res: NextApiResponse) => {
   const session = await getServerSession(req, res, authOptions);
@@ -18,38 +16,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
   }
 
   try {
-    const commiteeUrl = `${API_BASE_URL}/group.all`;
-
-    const committeeResponse = await fetch(commiteeUrl, {
-      method: "GET", // GET works for read queries
-      headers: { "content-type": "application/json" },
-    });
-
-    if (!committeeResponse.ok) {
-      throw new Error("Failed to fetch committees");
-    }
-
-    const committeeData: OwGroup[] = SuperJSON.parse(
-      JSON.stringify((await committeeResponse.json()).result.data),
-    );
-
-    // TODO: Ta med komité-id (finnes det i det hele tatt?)
-    const committees: OwCommittee[] = committeeData
-      .filter(
-        (group: OwGroup) =>
-          group.recruitmentMethod == "SPRING_APPLICATION" ||
-          group.recruitmentMethod == "AUTUMN_APPLICATION",
-      )
-      .map((group: OwGroup) => ({
-        name_short: group.abbreviation,
-        name_long: group.name,
-        email: group.email,
-        description_short: group.shortDescription,
-        description_long: group.description,
-        image: { xs: group.imageUrl, sm: group.imageUrl }, // TODO: Update to reflect new api
-        application_description: group.description,
-        type: group.type,
-      }));
+    const committees: OwGroup[] = await getCommitteesFromOw();
 
     return res.status(200).json(committees);
   } catch (error) {

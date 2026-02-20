@@ -1,6 +1,7 @@
 import NextAuth, { NextAuthOptions } from "next-auth";
 import Auth0Provider from "next-auth/providers/auth0";
 import SuperJSON from "superjson";
+import { OwGroup } from "../../../lib/types/types";
 
 const adminEmails = process.env.ADMIN_EMAILS?.split(",") || [];
 
@@ -8,29 +9,6 @@ interface User {
   id: string;
   phone: string;
   name: string;
-}
-
-/**
- * A type representing a group from the OW API: {BASE_API}/group.all
- *
- * Includes only a subset of the properties available in the api, namely those we need.
- */
-export interface OwGroup {
-  type: string;
-  recruitmentMethod:
-    | "NONE"
-    | "SPRING_APPLICATION"
-    | "AUTUMN_APPLICATION"
-    | "GENERAL_ASSEMBLY"
-    | "NOMINATION"
-    | "OTHER";
-  slug: string;
-  abbreviation: string;
-  name: string;
-  email: string;
-  shortDescription: string;
-  description: string;
-  imageUrl: string;
 }
 
 // TODO: Move to config file
@@ -94,7 +72,6 @@ export const authOptions: NextAuthOptions = {
             JSON.stringify((await committeeResponse.json()).result.data),
           );
 
-          // TODO: Ta med komité-id (finnes det i det hele tatt?)
           const committees = committeeData.map(
             (committee: OwGroup) => committee.slug,
           );

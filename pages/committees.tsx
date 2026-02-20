@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import LoadingPage from "../components/LoadingPage";
-import { OwCommittee, periodType } from "../lib/types/types";
+import { OwGroup, periodType } from "../lib/types/types";
 import CommitteeAboutCard from "../components/CommitteeAboutCard";
 import { useQuery } from "@tanstack/react-query";
 import { fetchOwCommittees } from "../lib/api/committeesApi";
@@ -14,10 +14,10 @@ import { shuffleList, partition } from "../lib/utils/arrays";
 
 // Page Component
 export default function Committees() {
-  const [committees, setCommittees] = useState<OwCommittee[]>([]);
-  const [nodeCommittees, setNodeCommittees] = useState<OwCommittee[]>([]);
+  const [committees, setCommittees] = useState<OwGroup[]>([]);
+  const [nodeCommittees, setNodeCommittees] = useState<OwGroup[]>([]);
   const [committeesInActivePeriod, setCommitteesWithPeriod] = useState<
-    OwCommittee[]
+    OwGroup[]
   >([]);
   const [periods, setPeriods] = useState<periodType[]>([]);
   const [activeTab, setActiveTab] = useState(0);
@@ -45,17 +45,16 @@ export default function Committees() {
 
     const [filteredNonNodeCommittees, filteredNodeCommittees] = partition(
       owCommitteeData,
-      (committee: OwCommittee) =>
-        committee.type != "NODE_COMMITTEE"
+      (committee: OwGroup) => committee.type != "NODE_COMMITTEE",
     );
 
     setCommittees(shuffleList(filteredNonNodeCommittees));
     setNodeCommittees(shuffleList(filteredNodeCommittees));
 
     const filteredCommitteesInActivePeriod = owCommitteeData.filter(
-      (commitee: OwCommittee) =>
+      (commitee: OwGroup) =>
         committeeIsInActivePeriod(commitee, periods) ||
-        committeeIsCurrentlyInterviewing(commitee, periods)
+        committeeIsCurrentlyInterviewing(commitee, periods),
     );
     setCommitteesWithPeriod(filteredCommitteesInActivePeriod);
 
@@ -126,7 +125,7 @@ const CommitteeList = ({
   committees,
   periods,
 }: {
-  committees: OwCommittee[];
+  committees: OwGroup[];
   periods: periodType[];
 }) => (
   <div className="w-10/12 px-4 mx-auto bg-white lg:px-6 dark:bg-gray-900">
@@ -135,7 +134,7 @@ const CommitteeList = ({
         ?.sort(
           (a, b) =>
             Number(committeeIsInActivePeriod(b, periods)) -
-            Number(committeeIsInActivePeriod(a, periods))
+            Number(committeeIsInActivePeriod(a, periods)),
         )
         .map((committee, index) => {
           return (
@@ -145,7 +144,7 @@ const CommitteeList = ({
               hasPeriod={committeeIsInActivePeriod(committee, periods)}
               isInterviewing={committeeIsCurrentlyInterviewing(
                 committee,
-                periods
+                periods,
               )}
             />
           );
@@ -161,8 +160,8 @@ const CommitteeList = ({
  * @returns true if *committee* is either a committee or an optional committee in a period that is currently open for application
  */
 const committeeIsInActivePeriod = (
-  committee: OwCommittee,
-  periods: periodType[]
+  committee: OwGroup,
+  periods: periodType[],
 ) => {
   if (!Array.isArray(periods)) return false;
 
@@ -175,20 +174,20 @@ const committeeIsInActivePeriod = (
   });
 
   // Bankom is always active, since you can be a representative of bankom from each committee
-  if (committee.name_short === "Bankom") {
+  if (committee.abbreviation === "Bankom") {
     return activePeriods.length > 0;
   }
 
   return activePeriods.some(
     (period) =>
-      period.committees.includes(committee.name_short) ||
-      period.optionalCommittees.includes(committee.name_short)
+      period.committees.includes(committee.abbreviation) ||
+      period.optionalCommittees.includes(committee.abbreviation),
   );
 };
 
 const committeeIsCurrentlyInterviewing = (
-  committee: OwCommittee,
-  periods: periodType[]
+  committee: OwGroup,
+  periods: periodType[],
 ) => {
   if (!Array.isArray(periods)) return false;
 
@@ -201,13 +200,13 @@ const committeeIsCurrentlyInterviewing = (
   });
 
   // Bankom is always active, since you can be a representative of bankom from each committee
-  if (committee.name_short === "Bankom") {
+  if (committee.abbreviation === "Bankom") {
     return periodsWithInterviewsCurrently.length > 0;
   }
 
   return periodsWithInterviewsCurrently.some(
     (period) =>
-      period.committees.includes(committee.name_short) ||
-      period.optionalCommittees.includes(committee.name_short)
+      period.committees.includes(committee.abbreviation) ||
+      period.optionalCommittees.includes(committee.abbreviation),
   );
 };

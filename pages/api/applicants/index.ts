@@ -56,8 +56,19 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
       const mode = process.env.NODE_ENV;
 
       if (applicant && mode == "production") {
-        await sendConfirmationEmail(applicant);
-        await sendConfirmationSMS(applicant);
+        let potentialError;
+
+        try {
+          await sendConfirmationEmail(applicant);
+        } catch (error) {
+          potentialError = error;
+        } finally {
+          await sendConfirmationSMS(applicant);
+        }
+
+        if (potentialError) {
+          throw potentialError;
+        }
       }
 
       return res.status(201).json({ applicant });

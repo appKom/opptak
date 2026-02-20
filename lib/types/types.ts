@@ -86,20 +86,27 @@ export type committeeInterviewType = {
 };
 
 /**
- * Type representing a subset of the properties of a committee from the OW API: {BASE_API}/group.all
+ * A type representing a group from the OW API: {BASE_API}/group.all
  *
- * TODO: combine with OwGroup from pages/api/auth/[...nextauth].ts
+ * Includes only a subset of the properties available in the api, namely those we need.
  */
-export type OwCommittee = {
+export interface OwGroup {
   type: string;
-  name_short: string;
-  name_long: string;
+  recruitmentMethod:
+    | "NONE"
+    | "SPRING_APPLICATION"
+    | "AUTUMN_APPLICATION"
+    | "GENERAL_ASSEMBLY"
+    | "NOMINATION"
+    | "OTHER";
+  slug: string;
+  abbreviation: string;
+  name: string;
   email: string;
-  description_long?: string;
-  description_short?: string;
-  application_description?: string;
-  image?: { xs: string; sm: string };
-};
+  shortDescription: string;
+  description: string;
+  imageUrl: string;
+}
 
 export type algorithmType = {
   applicantId: string;
