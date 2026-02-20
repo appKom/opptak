@@ -24,7 +24,7 @@ def main():
 
     print("Starting matching")
     period_id = request.args.get("period")
-    push_to_db = request.args.get("pushToDB", False)
+    push_to_db = request.args.get("pushToDB", "false").lower() == "true"
 
     applicants = fetch_applicants(period_id)
     committee_times = fetch_committee_times(period_id)
