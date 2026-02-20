@@ -4,7 +4,7 @@ from datetime import datetime, timedelta, timezone
 import os
 import certifi
 from typing import List, Dict
-from flask import Flask, request
+from flask import Flask, request, jsonify
 
 from mip_matching.Committee import Committee
 from mip_matching.TimeInterval import TimeInterval
@@ -13,8 +13,15 @@ from mip_matching.match_meetings import match_meetings, MeetingMatch
 
 app = Flask(__name__)
 
+API_SECRET = os.environ.get("INTERNAL_API_SECRET")
+
 @app.route("/") # type: ignore
 def main():
+    incoming_secret = request.headers.get("X-Internal-Secret")
+
+    if incoming_secret != API_SECRET:
+        return jsonify({"error": "Unauthorized"}), 401
+
     print("Starting matching")
     period_id = request.args.get("period")
     push_to_db = request.args.get("pushToDB", False)

@@ -29,6 +29,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
         method: "GET",
         headers: {
           "Content-Type": "application/json",
+          "X-Internal-Secret": process.env.MATCHING_API_SECRET!,
         },
       }
     );
