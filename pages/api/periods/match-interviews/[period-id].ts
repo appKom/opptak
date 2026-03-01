@@ -30,8 +30,9 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
         headers: {
           "Content-Type": "application/json",
           "X-Internal-Secret": process.env.MATCHING_API_SECRET!,
+          "Database-Name": process.env.NODE_ENV,
         },
-      }
+      },
     );
 
     if (!response.ok) {
