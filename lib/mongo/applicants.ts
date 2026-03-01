@@ -1,6 +1,6 @@
 import { Collection, Db, MongoClient, ObjectId } from "mongodb";
+import { applicantType, periodType } from "../types/types";
 import clientPromise from "./mongodb";
-import { applicantType, periodType, preferencesType } from "../types/types";
 import { getPeriodById } from "./periods";
 
 let client: MongoClient;
@@ -67,7 +67,7 @@ export const getApplicants = async () => {
 
 export const getApplication = async (
   id: string,
-  periodId: string | ObjectId
+  periodId: string | ObjectId,
 ) => {
   try {
     if (!applicants) await init();
@@ -86,7 +86,7 @@ export const getApplication = async (
 
 export const getApplicationByMongoId = async (
   id: string,
-  periodId: string | ObjectId
+  periodId: string | ObjectId,
 ) => {
   try {
     if (!applicants) await init();
@@ -123,13 +123,15 @@ export const getApplications = async (periodId: string) => {
 export const getApplicantsForCommittee = async (
   periodId: string,
   selectedCommittee: string,
-  userCommittees: string[]
+  userCommittees: string[],
 ) => {
   try {
     if (!applicants) await init();
 
     // Henter alle søkere for perioden
-    const result = await applicants.find({ periodId: periodId }).toArray();
+    const allApplicantsInPeriod = await applicants
+      .find({ periodId: periodId })
+      .toArray();
 
     const periodData = await getPeriodById(periodId);
     const period: periodType | undefined = periodData.period;
@@ -138,54 +140,27 @@ export const getApplicantsForCommittee = async (
       return { error: "Period not found" };
     }
 
-    // Type guard
-    const isPreferencesType = (
-      preferences: any
-    ): preferences is preferencesType => {
-      return (
-        preferences &&
-        typeof preferences.first === "string" &&
-        typeof preferences.second === "string" &&
-        typeof preferences.third === "string"
-      );
-    };
-
     // Filtrerer søkerne slik at kun brukere som er i komiteen som har blitt søkt på ser søkeren
-    // Fjerner prioriterings informasjon
-    const filteredApplicants = result
+    // Fjerner prioriteringsinformasjon
+    const filteredApplicants = allApplicantsInPeriod
       .map((applicant) => {
-        let preferencesArray: string[] = [];
-        if (isPreferencesType(applicant.preferences)) {
-          preferencesArray = [
-            applicant.preferences.first,
-            applicant.preferences.second,
-            applicant.preferences.third,
-          ];
-        } else if (Array.isArray(applicant.preferences)) {
-          preferencesArray = applicant.preferences.map(
-            (pref) => pref.committee
-          );
-        }
-
-        if (applicant.optionalCommittees != null) {
-          if (applicant.optionalCommittees.length > 0) {
-            for (const committee of applicant.optionalCommittees) {
-              preferencesArray.push(committee);
-            }
-          }
-        }
+        let preferencesArray: string[] = [
+          applicant.preferences.first,
+          applicant.preferences.second,
+          applicant.preferences.third,
+          ...(applicant.optionalCommittees ?? []),
+        ];
 
         // Sjekker om brukerens komite er blant søkerens komiteer
         const hasCommonCommittees = preferencesArray.some((preference) =>
-          userCommittees.includes(preference)
+          userCommittees.includes(preference),
         );
 
-        applicant.optionalCommittees = [];
-
+        // Skjuler søkerinformasjon for komitéen etter syv dager etter intervjuperioden
         const today = new Date();
         const sevenDaysAfterInterviewEnd = new Date(period.interviewPeriod.end);
         sevenDaysAfterInterviewEnd.setDate(
-          sevenDaysAfterInterviewEnd.getDate() + 5
+          sevenDaysAfterInterviewEnd.getDate() + 5,
         );
 
         if (
@@ -227,7 +202,7 @@ export const getApplicantsForCommittee = async (
 
 export const deleteApplication = async (
   owId: string,
-  periodId: string | ObjectId
+  periodId: string | ObjectId,
 ) => {
   try {
     if (!applicants) await init();

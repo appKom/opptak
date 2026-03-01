@@ -4,59 +4,94 @@ from datetime import datetime, timedelta, timezone
 import os
 import certifi
 from typing import List, Dict
+from flask import Flask, request, jsonify
 
 from mip_matching.Committee import Committee
 from mip_matching.TimeInterval import TimeInterval
 from mip_matching.Applicant import Applicant
 from mip_matching.match_meetings import match_meetings, MeetingMatch
 
+app = Flask(__name__)
 
+API_SECRET = os.environ.get("INTERNAL_API_SECRET")
+
+
+@app.route("/")  # type: ignore
 def main():
+    incoming_secret = request.headers.get("X-Internal-Secret")
+
+    database_name = request.headers.get("Database-Name")
+
+    match database_name:
+        case "development":
+            mongo_uri = os.getenv("MONGODB_URI_DEV")
+        case "production":
+            mongo_uri = os.getenv("MONGODB_URI_PROD")
+        case _:
+            return jsonify({"error": "Given Database-Name not allowed"}), 400
+
+    if not mongo_uri:
+        return jsonify({"error": "Environment variable not set"}), 500
+
+    if incoming_secret != API_SECRET:
+        return jsonify({"error": "Unauthorized"}), 401
+
     print("Starting matching")
-    periods = fetch_periods()
+    period_id = request.args.get("period")
+    if not period_id:
+        return jsonify({"error": "Period not provided"}), 400
 
-    for period in periods:
-        periodId = str(period["_id"])
-        application_end = datetime.fromisoformat(
-            period["applicationPeriod"]["end"].replace("Z", "+00:00"))
+    push_to_db = request.args.get("pushToDB", "false").lower() == "true"
 
-        now = datetime.now(timezone.utc)
+    applicants = fetch_applicants(period_id,
+                                  mongo_uri=mongo_uri,
+                                  database_name=database_name)
+    committee_times = fetch_committee_times(period_id,
+                                            mongo_uri=mongo_uri,
+                                            database_name=database_name)
 
-        if (application_end < now and period["hasSentInterviewTimes"] == False):
-            applicants = fetch_applicants(periodId)
-            committee_times = fetch_committee_times(periodId)
+    committee_objects = create_committee_objects(committee_times)
 
-            committee_objects = create_committee_objects(committee_times)
+    all_committees = {
+        committee.name: committee for committee in committee_objects}
 
-            all_committees = {
-                committee.name: committee for committee in committee_objects}
+    applicant_objects = create_applicant_objects(
+        applicants, all_committees)
 
-            applicant_objects = create_applicant_objects(
-                applicants, all_committees)
+    match_result = match_meetings(applicant_objects, committee_objects)
+    print(
+        f"Matching finished with status {match_result["solver_status"]}")
+    print(
+        f"Matched {match_result["matched_meetings"]}/{match_result["total_wanted_meetings"]} ({match_result["matched_meetings"]/match_result["total_wanted_meetings"]:.2f}) meetings")
 
-            match_result = match_meetings(applicant_objects, committee_objects)
-            print(
-                f"Matching finished with status {match_result["solver_status"]}")
-            print(
-                f"Matched {match_result["matched_meetings"]}/{match_result["total_wanted_meetings"]} ({match_result["matched_meetings"]/match_result["total_wanted_meetings"]:.2f}) meetings")
+    if push_to_db:
+        send_to_db(match_result, applicants, period_id,
+                   mongo_uri=mongo_uri, database_name=database_name)
+        print("Meetings sent to database")
 
-            send_to_db(match_result, applicants, periodId)
-            print("Meetings sent to database")
-            return match_result
+    result = {
+        "status": str(match_result["solver_status"]),
+        "total_wanted_meetings": match_result["total_wanted_meetings"],
+        "matched_meetings": match_result["matched_meetings"],
+        "results": format_match_results(match_result, applicants, period_id)
+    }
+    return result
 
 
-def send_to_db(match_result: MeetingMatch, applicants: List[dict], periodId):
+def send_to_db(match_result: MeetingMatch,
+               applicants: List[dict],
+               periodId: str,
+               mongo_uri: str,
+               database_name: str):
     load_dotenv()
     formatted_results = format_match_results(
         match_result, applicants, periodId)
     print("Sending to db")
     print(formatted_results)
 
-    mongo_uri = os.getenv("MONGODB_URI")
-    db_name = os.getenv("DB_NAME")
     client = MongoClient(mongo_uri, tlsCAFile=certifi.where())
 
-    db = client[db_name]  # type: ignore
+    db = client[database_name]  # type: ignore
 
     collection = db["interviews"]
 
@@ -65,23 +100,25 @@ def send_to_db(match_result: MeetingMatch, applicants: List[dict], periodId):
     client.close()
 
 
-def connect_to_db(collection_name):
+def connect_to_db(collection_name,
+                  mongo_uri: str,
+                  database_name: str):
     load_dotenv()
-
-    mongo_uri = os.getenv("MONGODB_URI")
-    db_name = os.getenv("DB_NAME")
 
     client = MongoClient(mongo_uri, tlsCAFile=certifi.where())
 
-    db = client[db_name]  # type: ignore
+    db = client[database_name]  # type: ignore
 
     collection = db[collection_name]
 
     return collection, client
 
 
-def fetch_periods():
-    collection, client = connect_to_db("periods")
+def fetch_periods(mongo_uri: str,
+                  database_name: str):
+    collection, client = connect_to_db("periods",
+                                       mongo_uri,
+                                       database_name)
 
     periods = list(collection.find())
 
@@ -90,8 +127,12 @@ def fetch_periods():
     return periods
 
 
-def fetch_applicants(periodId):
-    collection, client = connect_to_db("applications")
+def fetch_applicants(periodId,
+                     mongo_uri: str,
+                     database_name: str):
+    collection, client = connect_to_db("applications",
+                                       mongo_uri=mongo_uri,
+                                       database_name=database_name)
 
     applicants = list(collection.find({"periodId": periodId}))
 
@@ -100,8 +141,12 @@ def fetch_applicants(periodId):
     return applicants
 
 
-def fetch_committee_times(periodId):
-    collection, client = connect_to_db("committees")
+def fetch_committee_times(periodId,
+                          mongo_uri: str,
+                          database_name: str):
+    collection, client = connect_to_db("committees",
+                                       mongo_uri=mongo_uri,
+                                       database_name=database_name)
 
     committee_times = list(collection.find({"periodId": periodId}))
 

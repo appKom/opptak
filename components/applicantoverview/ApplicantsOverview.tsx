@@ -2,9 +2,7 @@ import { useEffect, useState, useRef } from "react";
 import {
   applicantType,
   bankomOptionsType,
-  committeePreferenceType,
   periodType,
-  preferencesType,
 } from "../../lib/types/types";
 import { AdjustmentsHorizontalIcon } from "@heroicons/react/24/outline";
 import ApplicantOverviewSkeleton from "../skeleton/ApplicantOverviewSkeleton";
@@ -16,6 +14,7 @@ import {
 import ErrorPage from "../ErrorPage";
 import ApplicantCard from "./ApplicantCard";
 import { SimpleTitle } from "../Typography";
+import { isPreferencesType } from "../../lib/utils/validators";
 
 interface Props {
   period?: periodType | null;
@@ -25,12 +24,6 @@ interface Props {
   showPeriodName?: boolean;
 }
 
-const isPreferencesType = (
-  preferences: preferencesType | committeePreferenceType[]
-): preferences is preferencesType => {
-  return (preferences as preferencesType).first !== undefined;
-};
-
 const ApplicantsOverview = ({
   period,
   committees,
@@ -39,11 +32,11 @@ const ApplicantsOverview = ({
   showPeriodName,
 }: Props) => {
   const [filteredApplicants, setFilteredApplicants] = useState<applicantType[]>(
-    []
+    [],
   );
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCommittee, setSelectedCommittee] = useState<string | null>(
-    null
+    null,
   );
   const [selectedYear, setSelectedYear] = useState<string>("");
   const [selectedBankom, setSelectedBankom] =
@@ -93,7 +86,7 @@ const ApplicantsOverview = ({
             applicant.optionalCommittees.some(
               (optionalCommittee) =>
                 optionalCommittee.toLowerCase() ===
-                selectedCommittee.toLowerCase()
+                selectedCommittee.toLowerCase(),
             )
           );
         }
@@ -102,13 +95,13 @@ const ApplicantsOverview = ({
 
     if (selectedYear) {
       filtered = filtered.filter(
-        (applicant) => applicant.grade.toString() === selectedYear
+        (applicant) => applicant.grade.toString() === selectedYear,
       );
     }
 
     if (selectedBankom) {
       filtered = filtered.filter(
-        (applicant) => applicant.bankom === selectedBankom
+        (applicant) => applicant.bankom === selectedBankom,
       );
     }
 

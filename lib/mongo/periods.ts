@@ -123,6 +123,26 @@ export const deletePeriodById = async (periodId: string | ObjectId) => {
   }
 };
 
+export const markMatchedInterviewsByPeriodId = async (periodId: string) => {
+  try {
+    if (!periods) await init();
+
+    const objectPeriodId = new ObjectId(periodId);
+
+    const result = await periods.findOneAndUpdate(
+      { _id: objectPeriodId },
+      {
+        $set: { hasMatchedInterviews: true },
+      }
+    );
+    {
+      return { result: result };
+    }
+  } catch (error) {
+    return { error: "Failed to update hasMatchedInterviews" };
+  }
+};
+
 export const markInterviewsSentByPeriodId = async (periodId: string) => {
   try {
     if (!periods) await init();

@@ -10,10 +10,6 @@ export type preferencesType = {
   third: string;
 };
 
-export type committeePreferenceType = {
-  committee: string;
-};
-
 export type applicantType = {
   _id: ObjectId;
   owId: string;
@@ -22,7 +18,7 @@ export type applicantType = {
   phone: string;
   grade: string;
   about: string;
-  preferences: preferencesType | committeePreferenceType[];
+  preferences: preferencesType;
   bankom: bankomOptionsType;
   optionalCommittees: string[];
   selectedTimes: [
@@ -65,6 +61,7 @@ export type periodType = {
   };
   committees: string[];
   optionalCommittees: string[];
+  hasMatchedInterviews: boolean;
   hasSentInterviewTimes: boolean;
 };
 

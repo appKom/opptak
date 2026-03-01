@@ -47,6 +47,7 @@ const NewPeriod = () => {
     },
     committees: [],
     optionalCommittees: [],
+    hasMatchedInterviews: false,
     hasSentInterviewTimes: false,
   });
 
