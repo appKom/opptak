@@ -65,6 +65,7 @@ export type periodType = {
   };
   committees: string[];
   optionalCommittees: string[];
+  hasMatchedInterviews: boolean;
   hasSentInterviewTimes: boolean;
 };
 

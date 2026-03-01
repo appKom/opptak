@@ -3,3 +3,4 @@ mip-matching @ git+https://github.com/appKom/vermicelli.git
 pymongo[srv]==3.12.0
 python-dotenv==1.0.1
 certifi==2024.7.4
+flask

@@ -4,45 +4,57 @@ from datetime import datetime, timedelta, timezone
 import os
 import certifi
 from typing import List, Dict
+from flask import Flask, request, jsonify
 
 from mip_matching.Committee import Committee
 from mip_matching.TimeInterval import TimeInterval
 from mip_matching.Applicant import Applicant
 from mip_matching.match_meetings import match_meetings, MeetingMatch
 
+app = Flask(__name__)
 
+API_SECRET = os.environ.get("INTERNAL_API_SECRET")
+
+@app.route("/") # type: ignore
 def main():
+    incoming_secret = request.headers.get("X-Internal-Secret")
+
+    if incoming_secret != API_SECRET:
+        return jsonify({"error": "Unauthorized"}), 401
+
     print("Starting matching")
-    periods = fetch_periods()
+    period_id = request.args.get("period")
+    push_to_db = request.args.get("pushToDB", "false").lower() == "true"
 
-    for period in periods:
-        periodId = str(period["_id"])
-        application_end = datetime.fromisoformat(
-            period["applicationPeriod"]["end"].replace("Z", "+00:00"))
+    applicants = fetch_applicants(period_id)
+    committee_times = fetch_committee_times(period_id)
 
-        now = datetime.now(timezone.utc)
+    committee_objects = create_committee_objects(committee_times)
 
-        if (application_end < now and period["hasSentInterviewTimes"] == False):
-            applicants = fetch_applicants(periodId)
-            committee_times = fetch_committee_times(periodId)
+    all_committees = {
+        committee.name: committee for committee in committee_objects}
 
-            committee_objects = create_committee_objects(committee_times)
+    applicant_objects = create_applicant_objects(
+        applicants, all_committees)
 
-            all_committees = {
-                committee.name: committee for committee in committee_objects}
+    match_result = match_meetings(applicant_objects, committee_objects)
+    print(
+        f"Matching finished with status {match_result["solver_status"]}")
+    print(
+        f"Matched {match_result["matched_meetings"]}/{match_result["total_wanted_meetings"]} ({match_result["matched_meetings"]/match_result["total_wanted_meetings"]:.2f}) meetings")
 
-            applicant_objects = create_applicant_objects(
-                applicants, all_committees)
+    if push_to_db:
+        send_to_db(match_result, applicants, period_id)
+        print("Meetings sent to database")
+        
+    result = {
+        "status": str(match_result["solver_status"]),
+        "total_wanted_meetings": match_result["total_wanted_meetings"],
+        "matched_meetings": match_result["matched_meetings"],
+        "results": format_match_results(match_result, applicants, period_id)
+    }
+    return result
 
-            match_result = match_meetings(applicant_objects, committee_objects)
-            print(
-                f"Matching finished with status {match_result["solver_status"]}")
-            print(
-                f"Matched {match_result["matched_meetings"]}/{match_result["total_wanted_meetings"]} ({match_result["matched_meetings"]/match_result["total_wanted_meetings"]:.2f}) meetings")
-
-            send_to_db(match_result, applicants, periodId)
-            print("Meetings sent to database")
-            return match_result
 
 
 def send_to_db(match_result: MeetingMatch, applicants: List[dict], periodId):

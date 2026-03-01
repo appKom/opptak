@@ -1,6 +1,7 @@
 import { useSession } from "next-auth/react";
 import { useEffect, useState } from "react";
 import router from "next/router";
+import { useRouter } from "next/navigation";
 import { periodType } from "../../../lib/types/types";
 import NotFound from "../../404";
 import ApplicantsOverview from "../../../components/applicantoverview/ApplicantsOverview";
@@ -21,6 +22,8 @@ const Admin = () => {
   const [activeTab, setActiveTab] = useState(0);
   const [tabClicked, setTabClicked] = useState<number>(0);
 
+  const navigation = useRouter()
+
   const { data, isError, isLoading } = useQuery({
     queryKey: ["periods", periodId],
     queryFn: fetchPeriodById,
@@ -32,6 +35,35 @@ const Admin = () => {
       data?.period.committees.concat(data?.period.optionalCommittees)
     );
   }, [data, session?.user?.owId]);
+
+  const runMatching = async ({ periodId }: {periodId: string}) => {
+    const confirm = window.confirm(
+      "Er du sikker på at du vil matche intervjuer?"
+    );
+
+    if (!confirm) return;
+
+    try {
+      const response = await fetch(
+        `/api/periods/match-interviews/${periodId}`,
+      );
+
+      if (!response.ok) {
+        throw new Error("Failed to match interviews");
+      }
+
+      const data = await response.json()
+      if (data.error) {
+        throw new Error(data.error)
+      }
+      toast.success("Intervjuene ble matchet!");
+
+      return data;
+    } catch (error) {
+      toast.error("Mathcing av intervjuer feilet")
+      console.error(error);
+    }
+  }
 
   const sendOutInterviewTimes = async ({ periodId }: { periodId: string }) => {
     const confirm = window.confirm(
@@ -101,11 +133,21 @@ const Admin = () => {
                   icon: <InboxIcon className="w-5 h-5" />,
                   content: (
                     <div className="flex flex-col items-center">
+                      {period?.hasMatchedInterviews ? 
                       <Button
                         title={"Send ut intervjutider"}
                         color={"blue"}
-                        onClick={() => sendOutInterviewTimes({ periodId })}
+                        onClick={async () => await sendOutInterviewTimes({ periodId })}
+                      /> :
+                      <Button
+                        title={"Kjør matching"}
+                        color={"blue"}
+                        onClick={async () => {
+                          await runMatching({ periodId });
+                          navigation.refresh();
+                        }}
                       />
+                    }
                     </div>
                   ),
                 },
