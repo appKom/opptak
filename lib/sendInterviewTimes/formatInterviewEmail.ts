@@ -7,7 +7,7 @@ import { formatDateHours } from "../utils/dateUtils";
 import { changeDisplayName } from "../utils/toString";
 
 export const formatApplicantInterviewEmail = (
-  applicant: emailApplicantInterviewType
+  applicant: emailApplicantInterviewType,
 ) => {
   let emailBody = `<p>Hei <strong>${applicant.applicantName}</strong>,</p><p>Her er dine intervjutider for ${applicant.period_name}:</p><ul><br/>`;
 
@@ -20,13 +20,13 @@ export const formatApplicantInterviewEmail = (
 
   applicant.committees.forEach((committee) => {
     emailBody += `<li><b>Komité:</b> ${changeDisplayName(
-      committee.committeeName
+      committee.committeeName,
     )}<br>`;
 
     if (committee.interviewTime.start !== "Ikke satt") {
       emailBody += `<b>Tid:</b> ${formatDateHours(
         committee.interviewTime.start,
-        committee.interviewTime.end
+        committee.interviewTime.end,
       )}<br>`;
     }
     if (committee.interviewTime.start === "Ikke satt") {
@@ -42,10 +42,10 @@ export const formatApplicantInterviewEmail = (
 };
 
 export const formatCommitteeInterviewEmail = (
-  committee: emailCommitteeInterviewType
+  committee: emailCommitteeInterviewType,
 ) => {
   let emailBody = `<p>Hei <strong>${changeDisplayName(
-    committee.committeeName
+    committee.committeeName,
   )}</strong>,</p><p>Her er deres intervjutider for ${
     committee.applicants.length
   } søkere:</p><ul>`;
@@ -64,12 +64,12 @@ export const formatCommitteeInterviewEmail = (
     if (applicant.interviewTime.start !== "Ikke satt") {
       emailBody += `<b>Tid:</b> ${formatDateHours(
         applicant.interviewTime.start,
-        applicant.interviewTime.end
+        applicant.interviewTime.end,
       )}<br>`;
     }
 
     if (applicant.interviewTime.start === "Ikke satt") {
-      emailBody += `<b>Tid:</b> Ikke satt. Ta kontakt med søker for å avtale tidspunkt.`;
+      emailBody += `<b>Tid:</b> Ikke satt. Ta kontakt med søker for å avtale tidspunkt.<br>`;
     }
     emailBody += `<b>Rom:</b> ${applicant.interviewTime.room}</li><br>`;
   });
