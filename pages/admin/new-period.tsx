@@ -17,7 +17,11 @@ import { createPeriod } from "../../lib/api/periodApi";
 import { SimpleTitle } from "../../components/Typography";
 import { getCommitteeDisplayNameFactory } from "../../lib/utils/getCommitteeDisplayNameFactory";
 
-const NewPeriod = () => {
+interface Props {
+  period?: periodType | null
+}
+
+const NewPeriod = ({ period }: Props) => {
   const queryClient = useQueryClient();
   const router = useRouter();
   const [showPreview, setShowPreview] = useState(false);
@@ -68,6 +72,22 @@ const NewPeriod = () => {
         queryKey: ["periods"],
       }),
   });
+
+  useEffect(() => {
+    if (!period) return;
+    setPeriodData({
+      ...period,
+      applicationPeriod: {
+        start: new Date(period.applicationPeriod.start),
+        end: new Date(period.applicationPeriod.end)
+      },
+      interviewPeriod: {
+        start: new Date(period.interviewPeriod.start),
+        end: new Date(period.interviewPeriod.end)
+      }
+    }
+    );
+  }, [period]);
 
   useEffect(() => {
     if (!owCommitteeData) return;
@@ -134,6 +154,7 @@ const NewPeriod = () => {
     setShowPreview((prev) => !prev);
   };
 
+
   if (owCommitteeIsError) return <ErrorPage />;
 
   return (
@@ -157,6 +178,7 @@ const NewPeriod = () => {
             label="Beskrivelse"
             placeholder="Flere komiteer søker nye medlemmer til suppleringsopptak. Har du det som trengs? Søk nå og bli en del av vårt fantastiske miljø!
             "
+            value={periodData.description}
             updateInputValues={(value: string) =>
               setPeriodData({
                 ...periodData,
@@ -169,10 +191,14 @@ const NewPeriod = () => {
         <DatePickerInput
           label="Søknadsperiode"
           updateDates={updateApplicationPeriodDates}
+          fromDate={periodData.applicationPeriod?.start instanceof Date ? periodData.applicationPeriod.start.toISOString().split("T")[0] : undefined}
+          toDate={periodData?.applicationPeriod?.end instanceof Date ? periodData.applicationPeriod.end.toISOString().split("T")[0] : undefined}
         />
         <DatePickerInput
           label="Intervjuperiode"
           updateDates={updateInterviewPeriodDates}
+          fromDate={periodData.interviewPeriod?.start instanceof Date ? periodData.interviewPeriod.start.toISOString().split("T")[0] : undefined}
+          toDate={periodData?.interviewPeriod?.end instanceof Date ? periodData.interviewPeriod.end.toISOString().split("T")[0] : undefined}
         />
 
         {owCommitteeIsLoading ? (
