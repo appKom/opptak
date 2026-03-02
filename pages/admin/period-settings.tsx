@@ -17,6 +17,13 @@ import { createPeriod } from "../../lib/api/periodApi";
 import { SimpleTitle } from "../../components/Typography";
 import { getCommitteeDisplayNameFactory } from "../../lib/utils/getCommitteeDisplayNameFactory";
 
+const formatDateForInput = (date: Date) => {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+};
+
 interface Props {
   period?: periodType | null
 }
@@ -154,7 +161,7 @@ const PeriodSettings = ({ period }: Props) => {
     setShowPreview((prev) => !prev);
   };
 
-
+  
   if (owCommitteeIsError) return <ErrorPage />;
 
   return (
@@ -191,15 +198,30 @@ const PeriodSettings = ({ period }: Props) => {
         <DatePickerInput
           label="Søknadsperiode"
           updateDates={updateApplicationPeriodDates}
-          fromDate={periodData.applicationPeriod?.start instanceof Date ? periodData.applicationPeriod.start.toISOString().split("T")[0] : undefined}
-          toDate={periodData?.applicationPeriod?.end instanceof Date ? periodData.applicationPeriod.end.toISOString().split("T")[0] : undefined}
+          fromDate={
+            periodData.applicationPeriod?.start instanceof Date
+              ? formatDateForInput(periodData.applicationPeriod.start)
+              : undefined
+          }
+          toDate={
+            periodData.applicationPeriod?.end instanceof Date
+              ? formatDateForInput(periodData.applicationPeriod.end)
+              : undefined
+          }
         />
         <DatePickerInput
           label="Intervjuperiode"
           updateDates={updateInterviewPeriodDates}
-          fromDate={periodData.interviewPeriod?.start instanceof Date ? periodData.interviewPeriod.start.toISOString().split("T")[0] : undefined}
-          toDate={periodData?.interviewPeriod?.end instanceof Date ? periodData.interviewPeriod.end.toISOString().split("T")[0] : undefined}
-        />
+          fromDate={
+            periodData.interviewPeriod?.start instanceof Date
+              ? formatDateForInput(periodData.interviewPeriod.start)
+              : undefined
+          }
+          toDate={
+            periodData.interviewPeriod?.end instanceof Date
+              ? formatDateForInput(periodData.interviewPeriod.end)
+              : undefined
+          }        />
 
         {owCommitteeIsLoading ? (
           <div className="animate-pulse">Laster komiteer...</div>
