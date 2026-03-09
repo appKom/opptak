@@ -5,15 +5,16 @@ interface Props {
   time: string;
   interviewLength: number;
   isDragging: boolean;
+  initalAvailable?: boolean;
   onToggleAvailability: (
     date: string,
     time: string,
-    isAvailable: boolean
+    isAvailable: boolean,
   ) => void;
 }
 
 export default function ScheduleCell(props: Props) {
-  const [available, setAvailable] = useState(true);
+  const [available, setAvailable] = useState(props.initalAvailable);
 
   const handleToggle = () => {
     setAvailable((prevAvailable) => {

@@ -55,6 +55,43 @@ export const createApplicant = async (applicantData: applicantType) => {
   }
 };
 
+// Edit applicant based on owId and periodId
+export const editApplicant = async (applicantData: applicantType) => {
+  try {
+    if (!applicants) await init();
+
+    const existingApplicant = await applicants.findOne({
+      owId: applicantData.owId,
+      periodId: applicantData.periodId,
+    });
+
+    if (!existingApplicant) {
+      return { error: "404 Application not found" };
+    }
+
+    const result = await applicants.updateOne(
+      { _id: existingApplicant._id },
+      { $set: applicantData }
+    );
+
+    if (result.modifiedCount === 1) {
+      const updatedApplicant = await applicants.findOne({
+        _id: existingApplicant._id,
+      });
+      if (updatedApplicant) {
+        return { applicant: updatedApplicant };
+      } else {
+        return { error: "Failed to retrieve the updated applicant" };
+      }
+    } else {
+      return { error: "Failed to update applicant" };
+    }
+  } catch (error) {
+    console.error(error);
+    return { error: "Failed to update applicant" };
+  }
+};
+
 export const getApplicants = async () => {
   try {
     if (!applicants) await init();

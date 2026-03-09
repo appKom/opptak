@@ -13,6 +13,7 @@ export default function getTimeSlots(interviewLength: number) {
       hour: "2-digit",
       minute: "2-digit",
     });
+    
     currentTime.setMinutes(currentTime.getMinutes() + interviewLength);
     const slotEndTime = currentTime.toLocaleTimeString([], {
       hour: "2-digit",
