@@ -165,6 +165,15 @@ export type MatchingResult = {
     }[];
     periodId: string;
   }[];
-  status: "OptimizationStatus.OPTIMAL" | ""; // TODO: Add more types
+  status: // ref. https://python-mip.readthedocs.io/en/latest/classes.html#optimizationstatus
+  | "OptimizationStatus.CUTOFF"
+    | "OptimizationStatus.ERROR"
+    | "OptimizationStatus.FEASIBLE"
+    | "OptimizationStatus.INFEASIBLE"
+    | "OptimizationStatus.INT_INFEASIBLE"
+    | "OptimizationStatus.LOADED"
+    | "OptimizationStatus.NO_SOLUTION_FOUND"
+    | "OptimizationStatus.OPTIMAL"
+    | "OptimizationStatus.UNBOUNDED";
   total_wanted_meetings: number;
 };
