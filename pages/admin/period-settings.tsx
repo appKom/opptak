@@ -16,6 +16,7 @@ import ErrorPage from "../../components/ErrorPage";
 import { createPeriod, editPeriod } from "../../lib/api/periodApi";
 import { SimpleTitle } from "../../components/Typography";
 import { getCommitteeDisplayNameFactory } from "../../lib/utils/getCommitteeDisplayNameFactory";
+import { fetchApplicantsByPeriodId } from "../../lib/api/applicantApi";
 
 const formatDateForInput = (date: Date) => {
   const year = date.getFullYear();
@@ -52,8 +53,8 @@ const PeriodSettings = ({ period }: Props) => {
   const [showPreview, setShowPreview] = useState(false);
   
   const [getCommitteeDisplayName, setGetCommitteeDisplayName] = useState<
-    (committee: string) => string
-    // Uses a wrapper function to not interpret the function as a setStateAction-function
+  (committee: string) => string
+  // Uses a wrapper function to not interpret the function as a setStateAction-function
   >(() => (committee: string) => committee);
   useEffect(() => {
     const inner = async () => {
@@ -62,7 +63,7 @@ const PeriodSettings = ({ period }: Props) => {
     };
     inner();
   }, []);
-
+  
   const [periodData, setPeriodData] = useState<DeepPartial<periodType>>({
     name: "",
     description: "",
@@ -79,7 +80,7 @@ const PeriodSettings = ({ period }: Props) => {
     hasMatchedInterviews: false,
     hasSentInterviewTimes: false,
   });
-
+  
   const {
     data: owCommitteeData,
     isError: owCommitteeIsError,
@@ -88,7 +89,27 @@ const PeriodSettings = ({ period }: Props) => {
     queryKey: ["ow-committees"],
     queryFn: fetchOwCommittees,
   });
-
+  
+  const {
+    data: applicantsData,
+    isError: applicantsIsError,
+    isLoading: applicantsIsLoading,
+  } = useQuery({
+    queryKey: ["applicants", period?._id],
+    queryFn: fetchApplicantsByPeriodId,
+  });
+  
+  const validateChangedInterviewPeriod = async (
+    original: periodType,
+    changed: DeepPartial<periodType>
+  ): Promise<boolean> =>  {
+    if (!Object.keys(changed).includes("interviewPeriod")) {
+      return true;
+    }
+    console.log(applicantsData);
+    return false;
+  }
+  
   const createPeriodMutation = useMutation({
     mutationFn: createPeriod,
     onSuccess: () =>
@@ -184,11 +205,16 @@ const PeriodSettings = ({ period }: Props) => {
   };
   
 
-  const handleEditPeriod = () => {
+  const handleEditPeriod = async () => {
     if (!validatePeriod(periodData)) return;
     if (!period) return;
-
+    
     const changedFields = getChangedFields(period, periodData);
+    
+    if (! await validateChangedInterviewPeriod(period, changedFields)) {
+      toast.error("Du kan ikke forkorte intervjuperioden");
+      return;
+    }
     
     try {
       editPeriodMutation.mutate({

@@ -64,21 +64,27 @@ export const isApplicantType = (
 
   // Check that the selectedTimes array is valid
 
-  const interviewPeriodStart = new Date(period.interviewPeriod.start);
-  const interviewPeriodEnd = new Date(period.interviewPeriod.end);
+  // const interviewPeriodStart = new Date(period.interviewPeriod.start);
+  // const interviewPeriodEnd = new Date(period.interviewPeriod.end);
 
-  const hasSelectedTimes =
-    Array.isArray(applicant.selectedTimes) &&
-    applicant.selectedTimes.every(
-      (time: { start: string; end: string }) =>
-        typeof time.start === "string" &&
-        typeof time.end === "string" &&
-        new Date(time.start) >= interviewPeriodStart &&
-        new Date(time.start) <= interviewPeriodEnd &&
-        new Date(time.end) <= interviewPeriodEnd &&
-        new Date(time.end) >= interviewPeriodStart &&
-        new Date(time.start) < new Date(time.end),
-    );
+  /* 
+    JEG FJERNER hasSelectedTimes VALIDATOREN INNTIL DATOER ER FIKSET.
+    DATOENE SOM SENDES INN HER ER HELT FEIL, OG DET ER BARE TILFELDIG AT DE IKKE HAR TRIGGET VALIDATOREN ENDA.
+    DET SKAL UANSETT IKKE VÆRE MULIG Å VELGE DATOER UTENFOR DET PERIODEN TILLATER GJENNOM SCHEDULE KOMPONENTEN.
+  */
+
+  // const hasSelectedTimes =
+  //   Array.isArray(applicant.selectedTimes) &&
+  //   applicant.selectedTimes.every(
+  //     (time: { start: string; end: string }) =>
+  //       typeof time.start === "string" &&
+  //       typeof time.end === "string" &&
+  //       new Date(time.start) >= interviewPeriodStart &&
+  //       new Date(time.start) <= interviewPeriodEnd &&
+  //       new Date(time.end) <= interviewPeriodEnd &&
+  //       new Date(time.end) >= interviewPeriodStart &&
+  //       new Date(time.start) < new Date(time.end),
+  //   );
 
   const periodOptionalCommittees = period.optionalCommittees.map((committee) =>
     committee.toLowerCase(),
@@ -96,8 +102,8 @@ export const isApplicantType = (
   return (
     hasBasicFields &&
     hasPreferencesFields &&
-    hasOptionalFields &&
-    hasSelectedTimes
+    hasOptionalFields
+    // hasSelectedTimes
   );
 };
 

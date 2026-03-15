@@ -19,7 +19,7 @@ const DatePickerInput = (props: Props) => {
           id={`${props.label}-from`}
           name={`${props.label}-from`}
           value={props.fromDate ?? ""}
-          onChange={(e) => props.updateDates({start: `${e.target.value}T00:00`, end: props.toDate ? `${props.toDate}T00:00` : ""})}
+          onChange={(e) => props.updateDates({start: `${e.target.value}T00:00`, end: props.toDate ? `${props.toDate}T23:59` : ""})}
           className="border text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 border-gray-300  text-gray-900 dark:border-gray-600 dark:bg-online-darkBlue dark:text-gray-200"
         />
         <span className="mx-4 text-gray-500 dark:text-gray-300">til</span>
@@ -28,7 +28,7 @@ const DatePickerInput = (props: Props) => {
           id={`${props.label}-to`}
           name={`${props.label}-to`}
           value={props.toDate ?? ""}
-          onChange={(e) => props.updateDates({start: props.fromDate ? `${props.fromDate}T00:00` : "", end: `${e.target.value}T00:00`})}
+          onChange={(e) => props.updateDates({start: props.fromDate ? `${props.fromDate}T00:00` : "", end: `${e.target.value}T23:59`})}
           className="border text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 border-gray-300 text-gray-900 dark:border-gray-600 dark:bg-online-darkBlue dark:text-gray-200"
         />
       </div>
