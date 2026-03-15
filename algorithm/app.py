@@ -95,6 +95,7 @@ def add_matching_status(
         "total_wanted_meetings": match_result["total_wanted_meetings"],
         "matched_meetings": match_result["matched_meetings"],
     }
+    
     period_collection.find_one_and_update({"_id": period_id}, {"$set": {
         "matching_status": matching_status
     }})
