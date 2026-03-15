@@ -1,4 +1,5 @@
 from pymongo import MongoClient
+from pymongo.database import Database
 from dotenv import load_dotenv
 from datetime import datetime, timedelta, timezone
 import os
@@ -78,14 +79,33 @@ def main():
     return result
 
 
+def add_matching_status(
+    period_id: str,
+    match_result: MeetingMatch,
+    mongo_database: Database,
+):
+    """
+    Updates the database with mathing status added to the period.
+    """
+    period_collection = mongo_database["periods"]
+
+    # Removes actual results from meeting match
+    matching_status = {key: value for key,
+                       value in match_result.items() if key != "results"}
+
+    period_collection.find_one_and_update({"_id": period_id}, {"$set": {
+        "matching_status": matching_status
+    }})
+
+
 def send_to_db(match_result: MeetingMatch,
                applicants: List[dict],
-               periodId: str,
+               period_id: str,
                mongo_uri: str,
                database_name: str):
     load_dotenv()
     formatted_results = format_match_results(
-        match_result, applicants, periodId)
+        match_result, applicants, period_id)
     print("Sending to db")
     print(formatted_results)
 
@@ -96,6 +116,10 @@ def send_to_db(match_result: MeetingMatch,
     collection = db["interviews"]
 
     collection.insert_many(formatted_results)
+
+    add_matching_status(period_id=period_id,
+                        match_result=match_result,
+                        mongo_database=db)
 
     client.close()
 
