@@ -11,7 +11,7 @@
     "format:write": "prettier --write ."
   },
   "dependencies": {
-    "@aws-sdk/client-ses": "^3.614.0",
+    "@aws-sdk/client-ses": "^3.1004.0",
     "@fullcalendar/core": "^6.1.11",
     "@fullcalendar/interaction": "^6.1.11",
     "@fullcalendar/react": "^6.1.11",
