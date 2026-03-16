@@ -25,21 +25,34 @@ export const formatAndSendEmails = async ({
     // Send email to each applicant
     applicantsToEmail.forEach(
       async (applicant: emailApplicantInterviewType) => {
-        await sendEmail({
-          toEmails: [applicant.applicantEmail],
-          subject: `Hei, ${applicant.applicantName}, her er dine intervjutider:`,
-          htmlContent: formatApplicantInterviewEmail(applicant),
-        });
+        let potentialError;
 
-        sendSMS(`+${applicant.applicantPhone}`, formatInterviewSMS(applicant));
-      }
+        try {
+          await sendEmail({
+            toEmails: [applicant.applicantEmail],
+            subject: `Hei, ${applicant.applicantName}, her er dine intervjutider:`,
+            htmlContent: formatApplicantInterviewEmail(applicant),
+          });
+        } catch (error) {
+          potentialError = error;
+        } finally {
+          sendSMS(
+            `+${applicant.applicantPhone}`,
+            formatInterviewSMS(applicant),
+          );
+        }
+
+        if (potentialError) {
+          throw potentialError;
+        }
+      },
     );
 
     // Send email to each committee
     committeesToEmail.forEach(
       async (committee: emailCommitteeInterviewType) => {
         const subject = `${changeDisplayName(
-          committee.committeeName
+          committee.committeeName,
         )} sine intervjutider for ${committee.period_name}`;
 
         await sendEmail({
@@ -47,7 +60,7 @@ export const formatAndSendEmails = async ({
           subject: subject,
           htmlContent: formatCommitteeInterviewEmail(committee),
         });
-      }
+      },
     );
   } catch (error) {
     return { error: "Failed to send out interview times" };
