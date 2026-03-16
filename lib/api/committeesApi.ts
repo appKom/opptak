@@ -13,3 +13,12 @@ export const fetchCommitteeTimes = async (context: QueryFunctionContext) => {
     res.json(),
   );
 };
+
+export const fetchCommitteesByPeriod = async (
+  context: QueryFunctionContext,
+) => {
+  const periodId = context.queryKey[1];
+  return fetch(`/api/committees/by-period/${periodId}`).then((res) =>
+    res.json(),
+  );
+};

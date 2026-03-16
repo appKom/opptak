@@ -6,8 +6,13 @@ import { periodType } from "../../../lib/types/types";
 import NotFound from "../../404";
 import ApplicantsOverview from "../../../components/applicantoverview/ApplicantsOverview";
 import { Tabs } from "../../../components/Tabs";
-import { CalendarIcon, InboxIcon } from "@heroicons/react/24/solid";
+import {
+  CalendarIcon,
+  InboxIcon,
+  UserGroupIcon,
+} from "@heroicons/react/24/solid";
 import Button from "../../../components/Button";
+import CommitteeCard from "../../../components/committeeoverview/committeeCard";
 import { useQuery } from "@tanstack/react-query";
 import { fetchPeriodById } from "../../../lib/api/periodApi";
 import LoadingPage from "../../../components/LoadingPage";
@@ -110,14 +115,18 @@ const Admin = () => {
         content={[
           {
             title: "Søkere",
-            icon: <CalendarIcon className="w-5 h-5" />,
+            icon: <CalendarIcon className="w-5 h-5"/>,
             content: (
-              <ApplicantsOverview
-                period={period}
-                committees={committees}
-                includePreferences={true}
-              />
+                <ApplicantsOverview
+                    period={period}
+                    committees={committees}
+                    includePreferences={true}
+                />
             ),
+          },{
+            title: "Komitéoversikt",
+            icon: <UserGroupIcon className="w-5 h-5" />,
+            content: <CommitteeCard periodId={period?._id?.toString()} />,
           },
           //Super admin :)
           ...(session?.user?.email &&
