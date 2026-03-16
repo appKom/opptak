@@ -9,8 +9,17 @@ const DatePickerInput = (props: Props) => {
   const [toDate, setToDate] = useState("");
 
   useEffect(() => {
-    const startDate = fromDate ? `${fromDate}T00:00` : "";
-    const endDate = toDate ? `${toDate}T23:59` : "";
+    const startDate = fromDate ? `${fromDate}T02:00` : "";
+
+    let endDate = toDate ? `${toDate}T00:00` : "";
+
+    if (endDate) {
+      const endDateObj = new Date(endDate);
+      endDateObj.setDate(endDateObj.getDate() + 2);
+      endDateObj.setHours(endDateObj.getHours() - 22);
+      endDate = endDateObj.toISOString();
+    }
+
     props.updateDates({ start: startDate, end: endDate });
   }, [fromDate, toDate]);
 
