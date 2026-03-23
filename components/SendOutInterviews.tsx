@@ -1,10 +1,8 @@
-import toast from "react-hot-toast";
-import { MatchingResult, periodType } from "../lib/types/types";
-import Button from "./Button";
-import { useEffect, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
-import { getInterviewsByPeriod } from "../lib/mongo/interviews";
-import { fetchInterviewsByPeriod } from "../lib/api/interviewApi";
+import { useState } from "react";
+import toast from "react-hot-toast";
+import { periodType } from "../lib/types/types";
+import Button from "./Button";
 
 interface Props {
   period: periodType | null;
@@ -14,25 +12,6 @@ const SendOutInterviews = ({ period }: Props) => {
   const queryClient = useQueryClient();
 
   const [isWaitingOnMatching, setIsWaitingOnMatching] = useState(false);
-  const [matchingResult, setMatchingResult] = useState<MatchingResult | null>(
-    null,
-  );
-
-  useEffect(() => {
-    if (!period?._id) return;
-
-    fetchInterviewsByPeriod(period?._id.toString()).then((result) => {
-      const total_number_of_interviews =
-        result.reduce(
-          (current_sum, { interviews }) => current_sum + interviews.length,
-          0,
-        ) ?? 0;
-      setMatchingResult({
-        matched_meetings: total_number_of_interviews,
-        total_wanted_meetings: 3,
-      });
-    });
-  }, [period]);
 
   const runMatching = async ({ periodId }: { periodId: string }) => {
     const confirm = window.confirm(
@@ -90,46 +69,102 @@ const SendOutInterviews = ({ period }: Props) => {
   };
 
   return (
-    <div className="flex flex-col items-center gap-4">
-      <Button
-        title={isWaitingOnMatching ? "Kjører matching..." : "Kjør matching"}
-        color={"blue"}
-        disabled={period?.hasMatchedInterviews || isWaitingOnMatching}
-        onClick={async () => {
-          setIsWaitingOnMatching(true);
-          await runMatching({ periodId: period!._id.toString() }).then(
-            (result) => {
-              setIsWaitingOnMatching(false);
-              setMatchingResult(result);
+    <div className="flex flex-col items-center overflow-hidden w-[50%] m-auto border-gray-300 border-2 bg-zinc-50 rounded-lg">
+      <h2 className="w-full text-white p-2 shadow- text-lg bg-online-darkTeal m-0 shadow-xl">
+        Matching av intervjutider
+      </h2>
+      <div className="m-4 flex flex-col items-center gap-4">
+        <p className="w-full">
+          Sett opp intervjutider automatisk ved å kjøre matching. Systemet vil
+          sette op så mange intervjuer som mulig basert på tidspunktene som
+          komitéene og søkerne har satt opp.
+        </p>
+        <p className="w-full">
+          I tillegg optimaliseres det for følgende undermål (i prioritert
+          rekkefølge):
+          <ul className="w-full list-disc list-inside">
+            <li>
+              Intervjutidspunkt er nærmest mulig midt på dagen. Dette hindrer i
+              tillegg unødvendige tomrom i en intervjubolk.
+            </li>
+            <li>
+              Første dagen unngås forsøksvis. Dette gjøres for å gi søkere best
+              mulig tid til å planlegge fra intervjutiden blir sendt.
+            </li>
+          </ul>
+        </p>
 
-              // refetch state
-              queryClient.invalidateQueries({
-                queryKey: ["periods", period?._id],
-              });
-            },
-          );
-        }}
-      />
+        <hr className="my-2 w-full" />
 
-      {period?.hasMatchedInterviews && matchingResult != null && (
-        <div>
-          <p>
-            Klarte å matche {matchingResult.matched_meetings} av{" "}
-            {matchingResult.total_wanted_meetings}
-          </p>
-        </div>
-      )}
+        {!period?.hasMatchedInterviews && (
+          <Button
+            title={isWaitingOnMatching ? "Kjører matching..." : "Kjør matching"}
+            color={"blue"}
+            disabled={period?.hasMatchedInterviews || isWaitingOnMatching}
+            onClick={async () => {
+              setIsWaitingOnMatching(true);
+              await runMatching({ periodId: period!._id.toString() }).then(
+                (result) => {
+                  setIsWaitingOnMatching(false);
 
-      <Button
-        title={"Send ut intervjutider"}
-        color={"blue"}
-        disabled={
-          !period?.hasMatchedInterviews && !period?.hasSentInterviewTimes
-        }
-        onClick={async () =>
-          await sendOutInterviewTimes({ periodId: period!._id.toString() })
-        }
-      />
+                  // refetch state
+                  queryClient.invalidateQueries({
+                    queryKey: ["periods", period?._id],
+                  });
+                },
+              );
+            }}
+          />
+        )}
+
+        {period?.hasMatchedInterviews && period.matching_status && (
+          <div className="flex flex-col items-center p-2 border border-gray-300 gap-4">
+            <div className="flex flex-row gap-4 border-b p-1">
+              <h3>Matching gjennomført</h3>
+              <p
+                className={
+                  "rounded-xl p-1 w-fit " +
+                  (period.matching_status.status == "OptimizationStatus.OPTIMAL"
+                    ? "bg-green-300"
+                    : "bg-red-300")
+                }
+              >
+                Status:{" "}
+                {period.matching_status.status.replace(
+                  "OptimizationStatus.",
+                  "",
+                )}
+              </p>
+            </div>
+            <p className="w-fit">
+              Klarte å matche{" "}
+              <span className="bg-gray-300 rounded-xl p-1">
+                {period.matching_status.matched_meetings} av{" "}
+                {period.matching_status.total_wanted_meetings}
+              </span>{" "}
+              intervjuer.
+            </p>
+          </div>
+        )}
+
+        {period?.hasMatchedInterviews &&
+          (!period?.hasSentInterviewTimes ? (
+            <Button
+              title={"Send ut intervjutider"}
+              color={"blue"}
+              disabled={
+                !period?.hasMatchedInterviews && !period?.hasSentInterviewTimes
+              }
+              onClick={async () =>
+                await sendOutInterviewTimes({
+                  periodId: period!._id.toString(),
+                })
+              }
+            />
+          ) : (
+            <p>Intervjuer er sendt ut!</p>
+          ))}
+      </div>
     </div>
   );
 };
