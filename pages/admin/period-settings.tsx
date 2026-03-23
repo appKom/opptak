@@ -11,7 +11,7 @@ import TextInput from "../../components/form/TextInput";
 import { DeepPartial, periodType } from "../../lib/types/types";
 import { validatePeriod } from "../../lib/utils/PeriodValidator";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { fetchOwCommittees } from "../../lib/api/committeesApi";
+import { fetchCommitteesByPeriodId, fetchOwCommittees } from "../../lib/api/committeesApi";
 import ErrorPage from "../../components/ErrorPage";
 import { createPeriod, editPeriod } from "../../lib/api/periodApi";
 import { SimpleTitle } from "../../components/Typography";
@@ -89,6 +89,16 @@ const PeriodSettings = ({ period }: Props) => {
     queryKey: ["ow-committees"],
     queryFn: fetchOwCommittees,
   });
+
+  const {
+    data: owCommitteesData,
+    isError: owCommitteesIsError,
+    isLoading: owCommitteesIsLoading,
+  } = useQuery({
+    queryKey: ["ow-committees", period?._id],
+    queryFn: fetchCommitteesByPeriodId,
+  });
+
   
   const {
     data: applicantsData,
@@ -117,6 +127,22 @@ const PeriodSettings = ({ period }: Props) => {
     if ((changed.interviewPeriod?.start && earliest < changed.interviewPeriod.start) || (changed.interviewPeriod?.end && latest > changed.interviewPeriod.end)) {
       return window.confirm("Du har fjernet intervjutider som minst en søker har markert. Dette kan skape problemer. Er du sikker på at du vil fortsette?")
     }
+    
+    earliest = new Date(8640000000000000);
+    latest = new Date(0);
+    for (const committee of owCommitteesData.result) {
+      if (earliest > new Date(committee.availabletimes.at(0).start)) {
+        earliest = new Date(committee.availabletimes.at(0).start);
+      }
+      if (latest < new Date(committee.availabletimes.at(-1).end)) {
+        latest = new Date(committee.availabletimes.at(-1).end);
+      }
+    }
+    
+    if ((changed.interviewPeriod?.start && earliest < changed.interviewPeriod.start) || (changed.interviewPeriod?.end && latest > changed.interviewPeriod.end)) {
+      return window.confirm("Du har fjernet intervjutider som minst en komite har markert. Dette kan skape problemer. Er du sikker på at du vil fortsette?")
+    }
+
     return true;
   }
   
