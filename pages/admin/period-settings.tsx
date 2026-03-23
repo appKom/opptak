@@ -109,10 +109,9 @@ const PeriodSettings = ({ period }: Props) => {
     queryFn: fetchApplicantsByPeriodId,
   });
   
-  const validateChangedInterviewPeriod = async (
-    original: periodType,
+  const validateChangedInterviewPeriod = (
     changed: DeepPartial<periodType>
-  ): Promise<boolean> => {
+  ): boolean => {
     let earliest = new Date(8640000000000000);
     let latest = new Date(0);
     for (const application of applicantsData.applications) {
@@ -247,7 +246,7 @@ const PeriodSettings = ({ period }: Props) => {
     
     const changedFields = getChangedFields(period, periodData);
     
-    if (!await validateChangedInterviewPeriod(period, changedFields)) {
+    if (!await validateChangedInterviewPeriod(changedFields)) {
       return;
     }
     
