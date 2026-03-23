@@ -1,8 +1,9 @@
 import ScheduleColumn from "./ScheduleColumn";
 import getTimeSlots from "../../lib/utils/getTimeSlots";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { DeepPartial, applicantType } from "../../lib/types/types";
 import ImportantNote from "../ImportantNote";
+import { co } from "@fullcalendar/core/internal-common";
 
 interface Props {
   interviewLength: number;
@@ -33,7 +34,7 @@ export default function Schedule({
   const [selectedCells, setSelectedCells] = useState<TimeSlot[]>([]);
 
   const getDatesWithinPeriod = (
-    periodTime: any
+    periodTime: any,
   ): { [date: string]: string } => {
     if (!periodTime) return {};
     const startDate = new Date(periodTime.start);
@@ -58,27 +59,7 @@ export default function Schedule({
     return dates;
   };
 
-  const convertToIso = (date: string, timeSlot: string): IsoTimeSlot => {
-    const [startTimeStr, endTimeStr] = timeSlot.split(" - ");
-    const [year, month, day] = date.split("-").map(Number);
-
-    const [startHour, startMinute] = parseTime(startTimeStr);
-    const startTime = new Date(
-      Date.UTC(year, month - 1, day, startHour, startMinute)
-    );
-
-    const [endHour, endMinute] = parseTime(endTimeStr);
-    const endTime = new Date(
-      Date.UTC(year, month - 1, day, endHour, endMinute)
-    );
-
-    return {
-      start: startTime.toISOString(),
-      end: endTime.toISOString(),
-    };
-  };
-
-  const parseTime = (time: string): [number, number] => {
+  const parseTime = useCallback((time: string): [number, number] => {
     const [timeStr, period] = time.split(" ");
     let [hour, minute] = timeStr.split(":").map(Number);
 
@@ -89,9 +70,45 @@ export default function Schedule({
     }
 
     return [hour, minute];
-  };
+  }, []);
+
+  const convertToIso = useCallback(
+    (date: string, timeSlot: string): IsoTimeSlot => {
+      const [startTimeStr, endTimeStr] = timeSlot.split(" - ");
+      const [year, month, day] = date.split("-").map(Number);
+
+      const [startHour, startMinute] = parseTime(startTimeStr);
+      const startTime = new Date(
+        Date.UTC(year, month - 1, day, startHour, startMinute),
+      );
+
+      const [endHour, endMinute] = parseTime(endTimeStr);
+      const endTime = new Date(
+        Date.UTC(year, month - 1, day, endHour, endMinute),
+      );
+
+      return {
+        start: startTime.toISOString(),
+        end: endTime.toISOString(),
+      };
+    },
+    [parseTime],
+  );
+
+  // Track if we've initialized (to prevent infinite loops)
+  const [isInitialized, setIsInitialized] = useState(false);
 
   useEffect(() => {
+    // Only initialize selectedTimes if not already set and not initialized
+    if (isInitialized) return;
+    if (
+      applicationData.selectedTimes &&
+      applicationData.selectedTimes.length > 0
+    ) {
+      setIsInitialized(true);
+      return;
+    }
+
     const dates = getDatesWithinPeriod(periodTime);
     const allAvailableTimes: { date: string; time: string }[] = [];
 
@@ -102,23 +119,45 @@ export default function Schedule({
     });
 
     const isoTimeSlotsForExport = allAvailableTimes.map((slot) =>
-      convertToIso(slot.date, slot.time)
+      convertToIso(slot.date, slot.time),
     );
 
-    setApplicationData({
-      ...applicationData,
+    setApplicationData((prevData: any) => ({
+      ...prevData,
       selectedTimes: isoTimeSlotsForExport,
-    });
-  }, []);
+    }));
+    setIsInitialized(true);
+  }, [
+    isInitialized,
+    applicationData.selectedTimes,
+    periodTime,
+    timeSlots,
+    convertToIso,
+    setApplicationData,
+  ]);
+
+  // Separate state to track pending updates
+  const [pendingUpdate, setPendingUpdate] = useState<any[] | null>(null);
+
+  // Sync pendingUpdate to applicationData (runs after render)
+  useEffect(() => {
+    if (pendingUpdate !== null) {
+      setApplicationData((prevData: any) => ({
+        ...prevData,
+        selectedTimes: pendingUpdate,
+      }));
+      setPendingUpdate(null);
+    }
+  }, [pendingUpdate, setApplicationData]);
 
   const handleToggleAvailability = (
     date: string,
     time: string,
-    available: boolean
+    available: boolean,
   ) => {
     setSelectedCells((prevCells) => {
       const index = prevCells.findIndex(
-        (cell) => cell.date === date && cell.time === time
+        (cell) => cell.date === date && cell.time === time,
       );
 
       let newCells;
@@ -132,7 +171,7 @@ export default function Schedule({
       const selectedSet = new Set(
         newCells
           .filter((cell) => !cell.available)
-          .map((cell) => `${cell.date}-${cell.time}`)
+          .map((cell) => `${cell.date}-${cell.time}`),
       );
 
       const dates = getDatesWithinPeriod(periodTime);
@@ -147,19 +186,28 @@ export default function Schedule({
       });
 
       const isoTimeSlotsForExport = dataToSend.map((slot) =>
-        convertToIso(slot.date, slot.time)
+        convertToIso(slot.date, slot.time),
       );
 
-      setApplicationData({
-        ...applicationData,
-        selectedTimes: isoTimeSlotsForExport,
-      });
+      // Queue the update instead of calling setApplicationData directly
+      setPendingUpdate(isoTimeSlotsForExport);
 
       return newCells;
     });
   };
 
   const dates = getDatesWithinPeriod(periodTime);
+
+  let weekDates: { [date: string]: IsoTimeSlot[] } = {};
+
+  Object.keys(dates).forEach((date) => {
+    weekDates[date] = [];
+    applicationData.selectedTimes?.forEach((slot) => {
+      if (slot?.start?.includes(date) && slot?.end) {
+        weekDates[date].push({ start: slot.start, end: slot.end });
+      }
+    });
+  });
 
   return (
     <div className="flex flex-col items-center">
@@ -193,6 +241,7 @@ export default function Schedule({
             date={date}
             weekDay={dates[date]}
             interviewLength={interviewLength}
+            availableSlots={weekDates[date]}
             onToggleAvailability={handleToggleAvailability}
             key={index}
           />

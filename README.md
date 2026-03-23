@@ -13,7 +13,7 @@ Before you start, make sure you have Node.js and npm/yarn installed on your mach
 Clone the repository to your local machine:
 
 ```bash
-git clone https://github.com/appKom/cappelini.git
+git clone [https://github.com/appKom/cappelini.git](https://github.com/appKom/opptak.git)
 ```
 
 Navigate into the project directory:

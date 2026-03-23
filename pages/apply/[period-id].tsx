@@ -20,6 +20,7 @@ import { fetchPeriodById } from "../../lib/api/periodApi";
 import {
   createApplicant,
   deleteApplicant,
+  editApplicant,
   fetchApplicantByPeriodAndId,
 } from "../../lib/api/applicantApi";
 import ErrorPage from "../../components/ErrorPage";
@@ -83,6 +84,27 @@ const Application: NextPage = () => {
     queryFn: fetchApplicantByPeriodAndId,
   });
 
+  const [showApplicationForm, setShowApplicationForm] = useState(
+    !fetchedApplicationData?.exists
+  );
+
+  // Populate form with existing application data when editing
+  useEffect(() => {
+    if (fetchedApplicationData?.exists && fetchedApplicationData?.application) {
+      setApplicationData((prevData) => ({
+        ...prevData,
+        ...fetchedApplicationData.application,
+      }));
+    }
+  }, [fetchedApplicationData]);
+
+  // Update showApplicationForm when fetchedApplicationData changes
+  useEffect(() => {
+    if (fetchedApplicationData !== undefined) {
+      setShowApplicationForm(!fetchedApplicationData?.exists);
+    }
+  }, [fetchedApplicationData]);
+
   const createApplicantMutation = useMutation({
     mutationFn: createApplicant,
     onSuccess: () => {
@@ -91,6 +113,7 @@ const Application: NextPage = () => {
         exists: true,
       });
       toast.success("Søknad sendt inn");
+      setShowApplicationForm(false);
     },
     onError: (error) => {
       if (error.message === "409 Application already exists for this period") {
@@ -106,9 +129,21 @@ const Application: NextPage = () => {
     onSuccess: () => {
       queryClient.setQueryData(["applicant", periodId, applicantId], null);
       toast.success("Søknad trukket tilbake");
-      setActiveTab(0);
+      router.push("/apply");
     },
     onError: () => toast.error("Det skjedde en feil, vennligst prøv igjen"),
+  });
+
+  const editApplicantMutation = useMutation({
+    mutationFn: editApplicant,
+    onSuccess: () => {
+      queryClient.setQueryData(["applicant", periodId, applicantId], {
+        applicant: applicationData,
+        exists: true,
+      });
+      toast.success("Søknad sendt inn");
+      setShowApplicationForm(false);
+    },
   });
 
   useEffect(() => {
@@ -137,7 +172,11 @@ const Application: NextPage = () => {
     }
 
     applicationData.periodId = periodId as string;
-    createApplicantMutation.mutate(applicationData as applicantType);
+    if (fetchedApplicationData?.exists) {
+      editApplicantMutation.mutate(applicationData as applicantType);
+    } else {
+      createApplicantMutation.mutate(applicationData as applicantType);
+    }
   };
 
   const handleDeleteApplication = async () => {
@@ -163,7 +202,7 @@ const Application: NextPage = () => {
   if (!periodData?.exists)
     return <SimpleTitle title="Opptaket finnes ikke" size="large" />;
 
-  if (fetchedApplicationData?.exists)
+  if (!showApplicationForm)
     return (
       <div className="flex flex-col items-center justify-center h-full gap-5 px-5 py-10 md:px-40 lg:px-80 dark:text-white">
         <WellDoneIllustration className="h-32" />
@@ -180,11 +219,18 @@ const Application: NextPage = () => {
           spam-mappen.)
         </p>
         {!isApplicationPeriodOver && (
-          <Button
-            title="Trekk tilbake søknad"
-            color="white"
-            onClick={handleDeleteApplication}
-          />
+          <div className="flex gap-5">
+            <Button
+              title="Trekk tilbake søknad"
+              color="white"
+              onClick={handleDeleteApplication}
+            />
+            <Button
+              title="Endre søknad"
+              color="blue"
+              onClick={() => setShowApplicationForm(true)}
+            />
+          </div>
         )}
         {fetchedApplicationData?.application && (
           <div className="w-full max-w-md">
@@ -195,7 +241,7 @@ const Application: NextPage = () => {
           </div>
         )}
 
-        {applicationData.phone && (
+        {applicationData?.phone && !fetchedApplicationData?.application && (
           <div className="w-full max-w-md">
             <ApplicantCard
               applicant={applicationData as applicantType}

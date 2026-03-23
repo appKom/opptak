@@ -2,6 +2,7 @@ interface Props {
   updateInputValues: Function;
   label: string;
   values: any[][];
+  defaultValue?: string;
 }
 
 const RadioInput = (props: Props) => {
@@ -24,6 +25,7 @@ const RadioInput = (props: Props) => {
                 type="radio"
                 value={option[1]}
                 name={props.label}
+                defaultChecked={props.defaultValue === option[1]}
               />
               <label className="inline-block text-gray-800 dark:text-white">
                 {option[0]}

@@ -34,7 +34,7 @@ export const ApplicationForm = (props: Props) => {
   });
 
   const optionalCommittees: string[] = props.optionalCommittees.map(
-    (committee) => committee.toLowerCase()
+    (committee) => committee.toLowerCase(),
   );
 
   const addOptionalCommittee = (committee: string, value: string) => {
@@ -44,7 +44,7 @@ export const ApplicationForm = (props: Props) => {
       updatedCommittees.push(committee);
     } else if (value === "nei" && updatedCommittees.includes(committee)) {
       updatedCommittees = updatedCommittees.filter(
-        (item) => item !== committee
+        (item) => item !== committee,
       );
     }
 
@@ -65,6 +65,15 @@ export const ApplicationForm = (props: Props) => {
       setIsNtnuEmail(false);
     }
   }, [props.applicationData.email]);
+
+  // Initialize selectedOptionalCommittees with existing data
+  useEffect(() => {
+    if (props.applicationData.optionalCommittees) {
+      setSelectedOptionalCommittees(
+        props.applicationData.optionalCommittees.filter(Boolean) as string[],
+      );
+    }
+  }, [props.applicationData.optionalCommittees]);
 
   return (
     <div className="flex items-center justify-center">
@@ -125,6 +134,7 @@ export const ApplicationForm = (props: Props) => {
         <Line />
         <TextAreaInput
           label="Skriv litt om deg selv"
+          value={props.applicationData.about || ""}
           updateInputValues={(value: any) =>
             props.setApplicationData({ ...props.applicationData, about: value })
           }
@@ -144,6 +154,12 @@ export const ApplicationForm = (props: Props) => {
             <SelectInput
               required
               values={availableCommittees}
+              defaultValue={
+                typeof props.applicationData.preferences === "object" &&
+                "first" in props.applicationData.preferences
+                  ? props.applicationData.preferences.first
+                  : ""
+              }
               label={
                 availableCommittees.length > 2 ? "Førstevalg" : "Velg komite"
               }
@@ -164,6 +180,12 @@ export const ApplicationForm = (props: Props) => {
           <SelectInput
             values={availableCommittees}
             label="Andrevalg"
+            defaultValue={
+              typeof props.applicationData.preferences === "object" &&
+              "second" in props.applicationData.preferences
+                ? props.applicationData.preferences.second
+                : ""
+            }
             updateInputValues={(value: string) =>
               props.setApplicationData({
                 ...props.applicationData,
@@ -179,6 +201,12 @@ export const ApplicationForm = (props: Props) => {
           <SelectInput
             values={availableCommittees}
             label="Tredjevalg"
+            defaultValue={
+              typeof props.applicationData.preferences === "object" &&
+              "third" in props.applicationData.preferences
+                ? props.applicationData.preferences.third
+                : ""
+            }
             updateInputValues={(value: string) =>
               props.setApplicationData({
                 ...props.applicationData,
@@ -198,6 +226,7 @@ export const ApplicationForm = (props: Props) => {
             ["Usikker (gjerne spør om mer info på intervjuet)", "kanskje"],
           ]}
           label="Er du interessert i å være økonomiansvarlig i komiteen (tilleggsverv i Bankom)?"
+          defaultValue={props.applicationData.bankom as string}
           updateInputValues={(value: boolean) =>
             props.setApplicationData({
               ...props.applicationData,
@@ -215,6 +244,9 @@ export const ApplicationForm = (props: Props) => {
               label={`Ønsker du å søke ${changeDisplayName(committee)} ${
                 availableCommittees.length > 1 ? "i tillegg?" : "?"
               }`}
+              defaultValue={
+                selectedOptionalCommittees.includes(committee) ? "ja" : "nei"
+              }
               updateInputValues={(value: string) =>
                 addOptionalCommittee(committee, value)
               }
