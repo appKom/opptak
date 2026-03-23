@@ -102,12 +102,22 @@ const PeriodSettings = ({ period }: Props) => {
   const validateChangedInterviewPeriod = async (
     original: periodType,
     changed: DeepPartial<periodType>
-  ): Promise<boolean> =>  {
-    if (!Object.keys(changed).includes("interviewPeriod")) {
-      return true;
+  ): Promise<boolean> => {
+    let earliest = new Date(8640000000000000);
+    let latest = new Date(0);
+    for (const application of applicantsData.applications) {
+      if (earliest > new Date(application.selectedTimes[0].start)) {
+        earliest = new Date(application.selectedTimes[0].start);
+      }
+      if (latest < new Date(application.selectedTimes.at(-1).end)) {
+        latest = new Date(application.selectedTimes.at(-1).end);
+      }
     }
-    console.log(applicantsData);
-    return false;
+
+    if ((changed.interviewPeriod?.start && earliest < changed.interviewPeriod.start) || (changed.interviewPeriod?.end && latest > changed.interviewPeriod.end)) {
+      return window.confirm("Du har fjernet intervjutider som minst en søker har markert. Dette kan skape problemer. Er du sikker på at du vil fortsette?")
+    }
+    return true;
   }
   
   const createPeriodMutation = useMutation({
@@ -211,8 +221,7 @@ const PeriodSettings = ({ period }: Props) => {
     
     const changedFields = getChangedFields(period, periodData);
     
-    if (! await validateChangedInterviewPeriod(period, changedFields)) {
-      toast.error("Du kan ikke forkorte intervjuperioden");
+    if (!await validateChangedInterviewPeriod(period, changedFields)) {
       return;
     }
     
