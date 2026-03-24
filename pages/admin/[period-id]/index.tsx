@@ -6,13 +6,14 @@ import { periodType } from "../../../lib/types/types";
 import NotFound from "../../404";
 import ApplicantsOverview from "../../../components/applicantoverview/ApplicantsOverview";
 import { Tabs } from "../../../components/Tabs";
-import { CalendarIcon, InboxIcon } from "@heroicons/react/24/solid";
+import { CalendarIcon, CogIcon, InboxIcon } from "@heroicons/react/24/solid";
 import Button from "../../../components/Button";
 import { useQuery } from "@tanstack/react-query";
 import { fetchPeriodById } from "../../../lib/api/periodApi";
 import LoadingPage from "../../../components/LoadingPage";
 import ErrorPage from "../../../components/ErrorPage";
 import toast from "react-hot-toast";
+import PeriodSettings from "../period-settings";
 
 const Admin = () => {
   const { data: session } = useSession();
@@ -118,6 +119,13 @@ const Admin = () => {
                 includePreferences={true}
               />
             ),
+          },
+          {
+            title: "Instillinger",
+            icon: <CogIcon className="w-5 h-5" />,
+            content: (
+              <PeriodSettings period={period}/>
+            )
           },
           //Super admin :)
           ...(session?.user?.email &&

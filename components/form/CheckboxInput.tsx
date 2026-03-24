@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { InformationCircleIcon } from "@heroicons/react/24/outline";
 
 interface CheckboxOption {
@@ -14,11 +14,17 @@ interface Props {
   required?: boolean;
   order: number;
   info?: string;
+  checkedItems?: string[];
 }
 
 const CheckboxInput = (props: Props) => {
   const [checkedItems, setCheckedItems] = useState<string[]>([]);
   const [showInfo, setShowInfo] = useState(false);
+
+  useEffect(() => {
+    if (!props.checkedItems) return;
+    setCheckedItems(props.checkedItems);
+  }, [props.checkedItems]);
 
   const handleInputChange = (e: React.BaseSyntheticEvent) => {
     const value = e.target.value;

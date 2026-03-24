@@ -11,20 +11,51 @@ import TextInput from "../../components/form/TextInput";
 import { DeepPartial, periodType } from "../../lib/types/types";
 import { validatePeriod } from "../../lib/utils/PeriodValidator";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { fetchOwCommittees } from "../../lib/api/committeesApi";
+import { fetchCommitteesByPeriodId, fetchOwCommittees } from "../../lib/api/committeesApi";
 import ErrorPage from "../../components/ErrorPage";
-import { createPeriod } from "../../lib/api/periodApi";
+import { createPeriod, editPeriod } from "../../lib/api/periodApi";
 import { SimpleTitle } from "../../components/Typography";
 import { getCommitteeDisplayNameFactory } from "../../lib/utils/getCommitteeDisplayNameFactory";
+import { fetchApplicantsByPeriodId } from "../../lib/api/applicantApi";
+import { validateChangedCommittees, validateChangedInterviewPeriod, validateChangedOptionalCommittees } from "../../lib/utils/validateEditedPeriod";
 
-const NewPeriod = () => {
+const formatDateForInput = (date: Date) => {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+};
+
+const getChangedFields = (
+  original: periodType,
+  current: DeepPartial<periodType>
+): Partial<periodType> => {
+  const changed: Partial<periodType> = {};
+
+  (Object.keys(current) as (keyof periodType)[]).forEach((key) => {
+    const originalValue = original[key];
+    const currentValue = current[key];
+
+    if (JSON.stringify(originalValue) !== JSON.stringify(currentValue)) {
+      changed[key] = currentValue as any;
+    }
+  });
+
+  return changed;
+};
+
+interface Props {
+  period?: periodType | null
+}
+
+const PeriodSettings = ({ period }: Props) => {
   const queryClient = useQueryClient();
   const router = useRouter();
   const [showPreview, setShowPreview] = useState(false);
-
+  
   const [getCommitteeDisplayName, setGetCommitteeDisplayName] = useState<
-    (committee: string) => string
-    // Uses a wrapper function to not interpret the function as a setStateAction-function
+  (committee: string) => string
+  // Uses a wrapper function to not interpret the function as a setStateAction-function
   >(() => (committee: string) => committee);
   useEffect(() => {
     const inner = async () => {
@@ -33,7 +64,7 @@ const NewPeriod = () => {
     };
     inner();
   }, []);
-
+  
   const [periodData, setPeriodData] = useState<DeepPartial<periodType>>({
     name: "",
     description: "",
@@ -50,7 +81,7 @@ const NewPeriod = () => {
     hasMatchedInterviews: false,
     hasSentInterviewTimes: false,
   });
-
+  
   const {
     data: owCommitteeData,
     isError: owCommitteeIsError,
@@ -60,6 +91,21 @@ const NewPeriod = () => {
     queryFn: fetchOwCommittees,
   });
 
+  const {
+    data: owCommitteesData,
+  } = useQuery({
+    queryKey: ["ow-committees", period?._id],
+    queryFn: fetchCommitteesByPeriodId,
+  });
+
+  
+  const {
+    data: applicantsData,
+  } = useQuery({
+    queryKey: ["applicants", period?._id],
+    queryFn: fetchApplicantsByPeriodId,
+  });
+  
   const createPeriodMutation = useMutation({
     mutationFn: createPeriod,
     onSuccess: () =>
@@ -68,6 +114,30 @@ const NewPeriod = () => {
         queryKey: ["periods"],
       }),
   });
+
+  const editPeriodMutation = useMutation({
+    mutationFn: editPeriod,
+    onSuccess: () => 
+      queryClient.invalidateQueries({
+        queryKey: ["periods"],
+      }),
+  });
+
+  useEffect(() => {
+    if (!period) return;
+    setPeriodData({
+      ...period,
+      applicationPeriod: {
+        start: new Date(period.applicationPeriod.start),
+        end: new Date(period.applicationPeriod.end)
+      },
+      interviewPeriod: {
+        start: new Date(period.interviewPeriod.start),
+        end: new Date(period.interviewPeriod.end)
+      }
+    }
+    );
+  }, [period]);
 
   useEffect(() => {
     if (!owCommitteeData) return;
@@ -129,51 +199,109 @@ const NewPeriod = () => {
 
     createPeriodMutation.mutate(periodData as periodType);
   };
+  
+
+  const handleEditPeriod = async () => {
+    if (!validatePeriod(periodData)) return;
+    if (!period) return;
+
+    
+    const changedFields = getChangedFields(period, periodData);
+
+    if (Object.keys(changedFields).length == 0) {
+      window.alert("Du har ikke gjort noen endringer");
+      return;
+    }
+    
+    if (changedFields.interviewPeriod) {
+      if (!validateChangedInterviewPeriod(changedFields, applicantsData, owCommitteesData)) return;
+    }
+
+    if (changedFields.committees) {
+      if (!validateChangedCommittees(period, changedFields, applicantsData)) return;
+    }
+
+    if (changedFields.optionalCommittees) {
+      if (!validateChangedOptionalCommittees(period, changedFields, applicantsData)) return;
+    }
+    
+    try {
+      editPeriodMutation.mutate({
+        _id: period._id,
+        ...changedFields,
+      } as periodType);
+      toast.success("Periode redigert");
+    } catch (e) {
+      console.error(e);
+      toast.error("Noe gikk galt, prøv igjen");
+    }
+  };
 
   const handlePreviewPeriod = () => {
     setShowPreview((prev) => !prev);
   };
 
+  
   if (owCommitteeIsError) return <ErrorPage />;
 
   return (
     <div className="flex flex-col items-center justify-center">
-      <SimpleTitle title="Ny opptaksperiode" />
+      {period ? <SimpleTitle title="Rediger opptaksperiode" /> : <SimpleTitle title="Ny opptaksperiode" />}
 
       <div className="flex flex-col items-center w-full py-10">
         <TextInput
           label="Navn"
           defaultValue={periodData.name}
           placeholder="Eksempel: Suppleringsopptak vår 2025"
-          updateInputValues={(value: string) =>
-            setPeriodData({
-              ...periodData,
-              name: value,
-            })
-          }
+          updateInputValues={(value: string) => {
+              setPeriodData({
+                ...periodData,
+                name: value,
+              })
+          }}
         />
         <div className="w-full max-w-xs">
           <TextAreaInput
             label="Beskrivelse"
             placeholder="Flere komiteer søker nye medlemmer til suppleringsopptak. Har du det som trengs? Søk nå og bli en del av vårt fantastiske miljø!
             "
-            updateInputValues={(value: string) =>
+            value={periodData.description}
+            updateInputValues={(value: string) => {
               setPeriodData({
                 ...periodData,
                 description: value,
               })
-            }
+            }}
           />
         </div>
 
         <DatePickerInput
           label="Søknadsperiode"
           updateDates={updateApplicationPeriodDates}
+          fromDate={
+            periodData.applicationPeriod?.start instanceof Date
+              ? formatDateForInput(periodData.applicationPeriod.start)
+              : undefined
+          }
+          toDate={
+            periodData.applicationPeriod?.end instanceof Date
+              ? formatDateForInput(periodData.applicationPeriod.end)
+              : undefined
+          }
         />
         <DatePickerInput
           label="Intervjuperiode"
           updateDates={updateInterviewPeriodDates}
-        />
+          fromDate={
+            periodData.interviewPeriod?.start instanceof Date
+              ? formatDateForInput(periodData.interviewPeriod.start)
+              : undefined
+          }
+          toDate={
+            periodData.interviewPeriod?.end instanceof Date
+              ? formatDateForInput(periodData.interviewPeriod.end)
+              : undefined
+          }        />
 
         {owCommitteeIsLoading ? (
           <div className="animate-pulse">Laster komiteer...</div>
@@ -190,6 +318,7 @@ const NewPeriod = () => {
               values={availableCommittees}
               order={1}
               required
+              checkedItems={periodData.committees?.filter(Boolean) as string[]}
             />
             <CheckboxInput
               updateInputValues={(selectedValues: string[]) => {
@@ -204,6 +333,7 @@ const NewPeriod = () => {
               info=" Valgfrie komiteer er komiteene som søkere kan velge i
                     tillegg til de maksimum 3 komiteene de kan søke på.
                     Eksempelvis: FeminIT"
+              checkedItems={periodData.optionalCommittees?.filter(Boolean) as string[]}
             />
           </div>
         )}
@@ -216,9 +346,9 @@ const NewPeriod = () => {
             onClick={handlePreviewPeriod}
           />
           <Button
-            title="Opprett opptaksperiode"
+            title={period ? "Lagre endringer" : "Opprett opptaksperiode"}
             color="blue"
-            onClick={handleAddPeriod}
+            onClick={period ? handleEditPeriod : handleAddPeriod}
           />
         </div>
       </div>
@@ -241,4 +371,4 @@ const NewPeriod = () => {
   );
 };
 
-export default NewPeriod;
+export default PeriodSettings;

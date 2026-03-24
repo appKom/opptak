@@ -1,8 +1,8 @@
 import { NextApiRequest, NextApiResponse } from "next";
-import { createCommittee } from "../../../../../lib/mongo/committees";
+import { createCommittee, getCommitteesByPeriod } from "../../../../../lib/mongo/committees";
 import { getServerSession } from "next-auth";
 import { authOptions } from "../../../auth/[...nextauth]";
-import { hasSession, isInCommitee } from "../../../../../lib/utils/apiChecks";
+import { hasSession, isAdmin, isInCommitee } from "../../../../../lib/utils/apiChecks";
 import {
   isCommitteeType,
   validateCommittee,
@@ -22,6 +22,18 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
 
   if (!hasSession(res, session)) return;
   if (!isInCommitee(res, session)) return;
+
+  if (req.method === "GET") {
+    if (!isAdmin(res, session)) return;
+
+    try {
+      const { result } = await getCommitteesByPeriod(periodId);
+
+      return res.status(200).json({ result })
+    } catch (error) {
+      return res.status(500).json(error)
+    }
+  }
 
   if (req.method === "POST") {
     const committeeData: committeeInterviewType = req.body;
@@ -57,7 +69,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
     }
   }
 
-  res.setHeader("Allow", ["POST"]);
+  res.setHeader("Allow", ["GET", "POST"]);
   return res.status(405).end(`Method ${req.method} is not allowed.`);
 };
 

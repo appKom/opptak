@@ -123,6 +123,29 @@ export const deletePeriodById = async (periodId: string | ObjectId) => {
   }
 };
 
+export const editPeriodById = async (
+  periodId: string | ObjectId,
+  updatedFields: Partial<periodType>
+) => {
+  try {
+    if (!periods) await init();
+    delete updatedFields._id;
+    
+    const result = await periods.updateOne(
+      { _id: new ObjectId(periodId) },
+      { $set: updatedFields }
+    );
+
+    if (result.matchedCount === 0) {
+      return { error: "Period not found" };
+    }
+
+    return { message: "Period updated successfully" };
+  } catch (error) {
+    return { error: "Failed to update period" };
+  }
+};
+
 export const markMatchedInterviewsByPeriodId = async (periodId: string) => {
   try {
     if (!periods) await init();
