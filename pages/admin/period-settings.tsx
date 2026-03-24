@@ -8,7 +8,7 @@ import CheckboxInput from "../../components/form/CheckboxInput";
 import DatePickerInput from "../../components/form/DatePickerInput";
 import TextAreaInput from "../../components/form/TextAreaInput";
 import TextInput from "../../components/form/TextInput";
-import { applicantType, DeepPartial, periodType } from "../../lib/types/types";
+import { DeepPartial, periodType } from "../../lib/types/types";
 import { validatePeriod } from "../../lib/utils/PeriodValidator";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { fetchCommitteesByPeriodId, fetchOwCommittees } from "../../lib/api/committeesApi";
@@ -93,8 +93,6 @@ const PeriodSettings = ({ period }: Props) => {
 
   const {
     data: owCommitteesData,
-    isError: owCommitteesIsError,
-    isLoading: owCommitteesIsLoading,
   } = useQuery({
     queryKey: ["ow-committees", period?._id],
     queryFn: fetchCommitteesByPeriodId,
@@ -103,8 +101,6 @@ const PeriodSettings = ({ period }: Props) => {
   
   const {
     data: applicantsData,
-    isError: applicantsIsError,
-    isLoading: applicantsIsLoading,
   } = useQuery({
     queryKey: ["applicants", period?._id],
     queryFn: fetchApplicantsByPeriodId,
@@ -208,25 +204,24 @@ const PeriodSettings = ({ period }: Props) => {
   const handleEditPeriod = async () => {
     if (!validatePeriod(periodData)) return;
     if (!period) return;
+
+    if (Object.keys(getChangedFields(period, periodData)).length == 0) {
+      window.alert("Du har ikke gjort noen endringer");
+      return;
+    }
     
     const changedFields = getChangedFields(period, periodData);
     
     if (changedFields.interviewPeriod) {
-      if (!validateChangedInterviewPeriod(changedFields, applicantsData, owCommitteesData)) {
-        return;
-      }
+      if (!validateChangedInterviewPeriod(changedFields, applicantsData, owCommitteesData)) return;
     }
 
     if (changedFields.committees) {
-      if (!validateChangedCommittees(period, changedFields, applicantsData)) {
-        return;
-      }
+      if (!validateChangedCommittees(period, changedFields, applicantsData)) return;
     }
 
     if (changedFields.optionalCommittees) {
-      if (!validateChangedOptionalCommittees(period, changedFields, applicantsData)) {
-        return;
-      }
+      if (!validateChangedOptionalCommittees(period, changedFields, applicantsData)) return;
     }
     
     try {
