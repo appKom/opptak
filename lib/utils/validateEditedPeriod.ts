@@ -43,8 +43,6 @@ export const validateChangedCommittees = (
     changed: DeepPartial<periodType>,
     applicantsData: any
 ): boolean => {
-    console.log(applicantsData.applications)
-    console.log(changed);
     const illegalRemovals: string[] = []
     const removedLowerCase: string[] = [];
     original.committees.map((committee) => {
@@ -75,7 +73,42 @@ export const validateChangedCommittees = (
             formattedCommittees +
             "\n\nDette kan skape problemer. Ønsker du å fortsette?";
 
-        return window.confirm(confirmMessage)
+        return window.confirm(confirmMessage);
+    }
+    return true;
+}
+
+export const validateChangedOptionalCommittees = (
+  original: periodType,
+  changed: DeepPartial<periodType>,
+  applicantsData: any
+): boolean => {
+  const illegalRemovals: string[] = []
+  const removedLowerCase: string[] = [];
+  original.optionalCommittees.map((committee) => {
+      if (!changed.optionalCommittees?.includes(committee)) {
+        removedLowerCase.push(committee.toLowerCase());
+      }
+  });
+  for (const application of applicantsData.applications) {
+    for (const committee of application.optionalCommittees) {
+      if (removedLowerCase.includes(committee.toLowerCase()) && !illegalRemovals.includes(committee.toLowerCase())) {
+        illegalRemovals.push(committee.toLowerCase());
+      } 
+    }
+  }
+
+  if (illegalRemovals.length > 0) {
+        const formattedCommittees = illegalRemovals
+            .map(c => c.charAt(0).toUpperCase() + c.slice(1))
+            .join("\n");
+
+        const confirmMessage =
+            "Følgende valgfrie komiteer du har fjernet har minst en søker:\n" +
+            formattedCommittees +
+            "\n\nDette kan skape problemer. Ønsker du å fortsette?";
+
+        return window.confirm(confirmMessage);
     }
     return true;
 }

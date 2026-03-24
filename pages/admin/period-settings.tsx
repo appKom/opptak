@@ -17,7 +17,7 @@ import { createPeriod, editPeriod } from "../../lib/api/periodApi";
 import { SimpleTitle } from "../../components/Typography";
 import { getCommitteeDisplayNameFactory } from "../../lib/utils/getCommitteeDisplayNameFactory";
 import { fetchApplicantsByPeriodId } from "../../lib/api/applicantApi";
-import { validateChangedCommittees, validateChangedInterviewPeriod } from "../../lib/utils/validateEditedPeriod";
+import { validateChangedCommittees, validateChangedInterviewPeriod, validateChangedOptionalCommittees } from "../../lib/utils/validateEditedPeriod";
 
 const formatDateForInput = (date: Date) => {
   const year = date.getFullYear();
@@ -219,6 +219,12 @@ const PeriodSettings = ({ period }: Props) => {
 
     if (changedFields.committees) {
       if (!validateChangedCommittees(period, changedFields, applicantsData)) {
+        return;
+      }
+    }
+
+    if (changedFields.optionalCommittees) {
+      if (!validateChangedOptionalCommittees(period, changedFields, applicantsData)) {
         return;
       }
     }
