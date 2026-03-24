@@ -8,7 +8,7 @@ import CheckboxInput from "../../components/form/CheckboxInput";
 import DatePickerInput from "../../components/form/DatePickerInput";
 import TextAreaInput from "../../components/form/TextAreaInput";
 import TextInput from "../../components/form/TextInput";
-import { DeepPartial, periodType } from "../../lib/types/types";
+import { applicantType, DeepPartial, periodType } from "../../lib/types/types";
 import { validatePeriod } from "../../lib/utils/PeriodValidator";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { fetchCommitteesByPeriodId, fetchOwCommittees } from "../../lib/api/committeesApi";
@@ -144,6 +144,47 @@ const PeriodSettings = ({ period }: Props) => {
 
     return true;
   }
+
+  const validateChangedCommittees = (
+    original: periodType,
+    changed: DeepPartial<periodType>
+  ): boolean => {
+    console.log(applicantsData.applications)
+    console.log(changed);
+    const illegalRemovals: string[] = []
+    const removedLowerCase: string[] = [];
+    original.committees.map((committee) => {
+      if (!changed.committees?.includes(committee)) {
+        removedLowerCase.push(committee.toLowerCase());
+      }
+    })
+
+    for (const application of applicantsData.applications) {
+      if (removedLowerCase && application.preferences.first != '' && removedLowerCase.includes(application.preferences.first) && !illegalRemovals.includes(application.preferences.first)) {
+        illegalRemovals.push(application.preferences.first);
+      }
+      if (removedLowerCase && application.preferences.second != '' && removedLowerCase.includes(application.preferences.second) && !illegalRemovals.includes(application.preferences.second)) {
+        illegalRemovals.push(application.preferences.second);
+      }
+      if (removedLowerCase && application.preferences.third != '' && removedLowerCase.includes(application.preferences.third) && !illegalRemovals.includes(application.preferences.third)) {
+        illegalRemovals.push(application.preferences.third);
+      }
+    }
+
+    if (illegalRemovals.length > 0) {
+      const formattedCommittees = illegalRemovals
+        .map(c => c.charAt(0).toUpperCase() + c.slice(1))
+        .join("\n");
+
+      const confirmMessage =
+        "Følgende komiteer du har fjernet har minst en søker:\n" +
+        formattedCommittees +
+        "\n\nDette kan skape problemer. Ønsker du å fortsette?";
+
+      return window.confirm(confirmMessage)
+    }
+    return true;
+  }
   
   const createPeriodMutation = useMutation({
     mutationFn: createPeriod,
@@ -246,8 +287,16 @@ const PeriodSettings = ({ period }: Props) => {
     
     const changedFields = getChangedFields(period, periodData);
     
-    if (!await validateChangedInterviewPeriod(changedFields)) {
-      return;
+    if (changedFields.interviewPeriod) {
+      if (!validateChangedInterviewPeriod(changedFields)) {
+        return;
+      }
+    }
+
+    if (changedFields.committees) {
+      if (!validateChangedCommittees(period, changedFields)) {
+        return;
+      }
     }
     
     try {
