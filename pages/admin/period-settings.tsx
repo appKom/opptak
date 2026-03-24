@@ -205,12 +205,13 @@ const PeriodSettings = ({ period }: Props) => {
     if (!validatePeriod(periodData)) return;
     if (!period) return;
 
-    if (Object.keys(getChangedFields(period, periodData)).length == 0) {
+    
+    const changedFields = getChangedFields(period, periodData);
+
+    if (Object.keys(changedFields).length == 0) {
       window.alert("Du har ikke gjort noen endringer");
       return;
     }
-    
-    const changedFields = getChangedFields(period, periodData);
     
     if (changedFields.interviewPeriod) {
       if (!validateChangedInterviewPeriod(changedFields, applicantsData, owCommitteesData)) return;
