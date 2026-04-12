@@ -17,7 +17,7 @@ const ApplicantCard = ({ applicant, includePreferences }: Props) => {
 
   const preferences = applicant?.preferences || {};
   const filteredPreferences = Object.entries(preferences).filter(
-    ([key, value]) => value
+    ([key, value]) => value,
   );
 
   return (
@@ -49,11 +49,13 @@ const ApplicantCard = ({ applicant, includePreferences }: Props) => {
 
         {includePreferences && filteredPreferences.length > 0 && (
           <>
-            <h1 className="text-lg font-semibold pt-3">Komiteer:</h1>
+            <h1 className="text-lg font-semibold pt-3">
+              Prioriterte komitévalg:
+            </h1>
             <ul>
               {filteredPreferences.map(([key, value], index) => (
                 <li key={index}>{`${index + 1}. ${changeDisplayName(
-                  value as string
+                  value as string,
                 )}`}</li>
               ))}
             </ul>
@@ -62,7 +64,7 @@ const ApplicantCard = ({ applicant, includePreferences }: Props) => {
 
         {applicant?.optionalCommittees && (
           <div className="pt-3">
-            <h1 className="text-lg font-semibold">Andre valg:</h1>
+            <h1 className="text-lg font-semibold">Øvrige komitévalg:</h1>
             <p>
               {applicant?.optionalCommittees
                 ?.map(changeDisplayName)
