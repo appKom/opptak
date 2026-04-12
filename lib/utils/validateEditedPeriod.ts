@@ -118,7 +118,7 @@ export const validateChangedOptionalCommittees = (
             .join("\n");
 
         const errorMessage =
-            "Følgende valgfrie komiteer du har fjernet har minst en søker:\n" +
+            "Følgende valgfrie komiteer har minst en søker og kan derfor ikke fjernes:\n" +
             formattedCommittees;
 
         window.alert(errorMessage);
