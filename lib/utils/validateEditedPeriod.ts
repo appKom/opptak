@@ -1,38 +1,52 @@
-import { DeepPartial, periodType } from "../../lib/types/types";
+import { applicantType, AvailableTime, committeeInterviewType, DeepPartial, periodType } from "../../lib/types/types";
 
 export const validateChangedInterviewPeriod = (
     changed: DeepPartial<periodType>,
     applicantsData: any,
     owCommitteesData: any
 ): boolean => {
-    let earliest = new Date(8640000000000000);
-    let latest = new Date(0);
-    for (const application of applicantsData.applications) {
-        if (earliest > new Date(application.selectedTimes[0].start)) {
-            earliest = new Date(application.selectedTimes[0].start);
-        }
-        if (latest < new Date(application.selectedTimes.at(-1).end)) {
-            latest = new Date(application.selectedTimes.at(-1).end);
-        }
+    const illegalRemovals = new Set();
+
+    applicantsData.applications.forEach((applicaton: applicantType) => {
+        applicaton.selectedTimes.forEach((time: {start: string, end: string}) => {
+            if ((changed.interviewPeriod?.start && new Date(time.start) < changed.interviewPeriod.start) || (changed.interviewPeriod?.end && new Date(time.end) > changed.interviewPeriod.end)) {
+                illegalRemovals.add(new Date(time.start).toISOString().split("T")[0])
+            }
+        })
+    })
+
+    if (illegalRemovals.size > 0) {
+        const formattedDates = Array.from(illegalRemovals)
+            .join("\n");
+
+        const errorMessage =
+            "Følgende datoer har minst en søker og kan derfor ikke fjernes:\n" +
+            formattedDates;
+
+        window.alert(errorMessage)
+        return false;
     }
 
-    if ((changed.interviewPeriod?.start && earliest < changed.interviewPeriod.start) || (changed.interviewPeriod?.end && latest > changed.interviewPeriod.end)) {
-        return window.confirm("Du har fjernet intervjutider som minst en søker har markert. Dette kan skape problemer. Er du sikker på at du vil fortsette?")
-    }
+    illegalRemovals.clear();
 
-    earliest = new Date(8640000000000000);
-    latest = new Date(0);
-    for (const committee of owCommitteesData.result) {
-        if (earliest > new Date(committee.availabletimes.at(0).start)) {
-            earliest = new Date(committee.availabletimes.at(0).start);
-        }
-        if (latest < new Date(committee.availabletimes.at(-1).end)) {
-            latest = new Date(committee.availabletimes.at(-1).end);
-        }
-    }
+    owCommitteesData.result.forEach((committee: committeeInterviewType) => {
+        committee.availabletimes.forEach((time: AvailableTime) => {
+            if ((changed.interviewPeriod?.start && new Date(time.start) < changed.interviewPeriod.start) || (changed.interviewPeriod?.end && new Date(time.end) > changed.interviewPeriod.end)) {
+                illegalRemovals.add(new Date(time.start).toISOString().split("T")[0])
+            }
+        })
+    })
 
-    if ((changed.interviewPeriod?.start && earliest < changed.interviewPeriod.start) || (changed.interviewPeriod?.end && latest > changed.interviewPeriod.end)) {
-        return window.confirm("Du har fjernet intervjutider som minst en komite har markert. Dette kan skape problemer. Er du sikker på at du vil fortsette?")
+    if (illegalRemovals.size > 0) {
+        const formattedDates = Array.from(illegalRemovals)
+            .join("\n");
+
+        const errorMessage =
+            "Følgende datoer er valgt av minst en komite og kan derfor ikke fjernes:\n" +
+            formattedDates;
+
+        window.alert(errorMessage)
+        return false;
     }
 
     return true;
@@ -68,12 +82,12 @@ export const validateChangedCommittees = (
             .map(c => c.charAt(0).toUpperCase() + c.slice(1))
             .join("\n");
 
-        const confirmMessage =
-            "Følgende komiteer du har fjernet har minst en søker:\n" +
-            formattedCommittees +
-            "\n\nDette kan skape problemer. Ønsker du å fortsette?";
+        const errorMessage =
+            "Følgende komiteer har minst en søker og kan derfor ikke fjernes:\n" +
+            formattedCommittees 
 
-        return window.confirm(confirmMessage);
+        window.alert(errorMessage)
+        return false;
     }
     return true;
 }
@@ -103,12 +117,12 @@ export const validateChangedOptionalCommittees = (
             .map(c => c.charAt(0).toUpperCase() + c.slice(1))
             .join("\n");
 
-        const confirmMessage =
+        const errorMessage =
             "Følgende valgfrie komiteer du har fjernet har minst en søker:\n" +
-            formattedCommittees +
-            "\n\nDette kan skape problemer. Ønsker du å fortsette?";
+            formattedCommittees;
 
-        return window.confirm(confirmMessage);
+        window.alert(errorMessage);
+        return false;
     }
     return true;
 }
