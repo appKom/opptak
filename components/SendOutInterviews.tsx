@@ -76,7 +76,7 @@ const SendOutInterviews = ({ period }: Props) => {
       <div className="m-4 flex flex-col items-center gap-4">
         <p className="w-full">
           Sett opp intervjutider automatisk ved å kjøre matching. Systemet vil
-          sette op så mange intervjuer som mulig basert på tidspunktene som
+          sette opp så mange intervjuer som mulig basert på tidspunktene som
           komitéene og søkerne har satt opp.
         </p>
         <p className="w-full">
