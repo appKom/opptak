@@ -8,6 +8,7 @@ interface Props {
   icon?: React.ReactNode;
   onClick?: (e: React.MouseEvent<HTMLButtonElement>) => void;
   href?: string;
+  disabled?: boolean;
 }
 
 const Button = (props: Props) => {
@@ -31,6 +32,10 @@ const Button = (props: Props) => {
       break;
   }
 
+  // Add style for disabled button
+  colorClasses +=
+    " disabled:bg-gray-500 disabled:text-gray-400 disabled:cursor-not-allowed";
+
   if (props.size === "small") {
     sizeClasses = "px-5 py-2.5 text-sm";
   } else {
@@ -51,7 +56,12 @@ const Button = (props: Props) => {
   }
 
   return (
-    <button type="button" onClick={props.onClick} className={className}>
+    <button
+      type="button"
+      onClick={props.onClick}
+      className={className}
+      disabled={props.disabled}
+    >
       {props.title}
       {props.icon}
     </button>
