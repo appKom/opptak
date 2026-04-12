@@ -13,7 +13,7 @@ import { fetchPeriodById } from "../../../lib/api/periodApi";
 import LoadingPage from "../../../components/LoadingPage";
 import ErrorPage from "../../../components/ErrorPage";
 import toast from "react-hot-toast";
-import PeriodSettings from "../period-settings";
+import PeriodSettings from "../../../components/admin/period-settings";
 
 const Admin = () => {
   const { data: session } = useSession();

@@ -91,7 +91,7 @@ const Admin = () => {
         <Button
           title="Ny opptaksperiode"
           color="blue"
-          href="/admin/period-settings"
+          href="/admin/new-period"
         />
       </div>
 
