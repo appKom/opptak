@@ -62,6 +62,7 @@ export type periodType = {
   committees: string[];
   optionalCommittees: string[];
   hasMatchedInterviews: boolean;
+  matching_status: MatchingStatus | null;
   hasSentInterviewTimes: boolean;
 };
 
@@ -150,5 +151,33 @@ export type emailApplicantInterviewType = {
       end: string;
       room: string;
     };
+  }[];
+};
+
+export type MatchingStatus = {
+  matched_meetings: number;
+  status: // ref. https://python-mip.readthedocs.io/en/latest/classes.html#optimizationstatus
+  | "OptimizationStatus.CUTOFF"
+    | "OptimizationStatus.ERROR"
+    | "OptimizationStatus.FEASIBLE"
+    | "OptimizationStatus.INFEASIBLE"
+    | "OptimizationStatus.INT_INFEASIBLE"
+    | "OptimizationStatus.LOADED"
+    | "OptimizationStatus.NO_SOLUTION_FOUND"
+    | "OptimizationStatus.OPTIMAL"
+    | "OptimizationStatus.UNBOUNDED";
+  total_wanted_meetings: number;
+};
+
+export type MatchingResult = MatchingStatus & {
+  results: {
+    applicantId: string;
+    interview: {
+      committeeName: string;
+      start: string;
+      end: string;
+      room: string;
+    }[];
+    periodId: string;
   }[];
 };
