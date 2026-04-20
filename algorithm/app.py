@@ -108,19 +108,23 @@ def send_to_db(match_result: MeetingMatch,
                mongo_uri: str,
                database_name: str):
     load_dotenv()
-    formatted_results = format_match_results(
-        match_result, applicants, period_id)
-    print("Sending to db")
-    print(formatted_results)
-
     client = MongoClient(mongo_uri, tlsCAFile=certifi.where())
-
     db = client[database_name]  # type: ignore
 
-    collection = db["interviews"]
+    if match_result["matched_meetings"] == 0:
+        # Cannot insert empty collection
+        print("No matched meetings to send")
+    else:
+        formatted_results = format_match_results(
+            match_result, applicants, period_id)
+        print("Sending to db")
+        print(formatted_results)
 
-    collection.insert_many(formatted_results)
+        collection = db["interviews"]
 
+        collection.insert_many(formatted_results)
+
+    # Always update status
     add_matching_status(period_id=period_id,
                         match_result=match_result,
                         mongo_database=db)
