@@ -1,4 +1,3 @@
-import { CalendarIcon, InboxIcon } from "@heroicons/react/24/solid";
 import { useQuery } from "@tanstack/react-query";
 import { useSession } from "next-auth/react";
 import router from "next/router";
@@ -11,6 +10,9 @@ import { Tabs } from "../../../components/Tabs";
 import { fetchPeriodById } from "../../../lib/api/periodApi";
 import { periodType } from "../../../lib/types/types";
 import NotFound from "../../404";
+import { CalendarIcon, CogIcon, InboxIcon } from "@heroicons/react/24/solid";
+import PeriodSettings from "../../../components/admin/period-settings";
+
 
 const Admin = () => {
   const { data: session } = useSession();
@@ -59,10 +61,16 @@ const Admin = () => {
             ),
           },
           {
+            title: "Instillinger",
+            icon: <CogIcon className="w-5 h-5" />,
+            content: <PeriodSettings period={period} />
+          },
+          {
             title: "Send ut intervjutider",
             icon: <InboxIcon className="w-5 h-5" />,
             content: <SendOutInterviews period={period} />,
           },
+
         ]}
       />
     </div>

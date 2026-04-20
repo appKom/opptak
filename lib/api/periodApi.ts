@@ -25,3 +25,13 @@ export const createPeriod = async (period: periodType) => {
     },
   });
 };
+
+export const editPeriod = async (updatedFields : Partial<periodType>) => {
+  return fetch(`/api/periods/${updatedFields._id}`, {
+    method: "PATCH",
+    body: JSON.stringify(updatedFields),
+    headers: {
+      "Content-Type": "application/json",
+    },
+  });
+};
