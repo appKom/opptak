@@ -82,17 +82,17 @@ const SendOutInterviews = ({ period }: Props) => {
         <p className="w-full">
           I tillegg optimaliseres det for følgende undermål (i prioritert
           rekkefølge):
-          <ul className="w-full list-disc list-inside">
-            <li>
-              Intervjutidspunkt er nærmest mulig midt på dagen. Dette hindrer i
-              tillegg unødvendige tomrom i en intervjubolk.
-            </li>
-            <li>
-              Første dagen unngås forsøksvis. Dette gjøres for å gi søkere best
-              mulig tid til å planlegge fra intervjutiden blir sendt.
-            </li>
-          </ul>
         </p>
+        <ul className="w-full list-disc list-inside">
+          <li>
+            Intervjutidspunkt er nærmest mulig midt på dagen. Dette hindrer i
+            tillegg unødvendige tomrom i en intervjubolk.
+          </li>
+          <li>
+            Første dagen unngås forsøksvis. Dette gjøres for å gi søkere best
+            mulig tid til å planlegge fra intervjutiden blir sendt.
+          </li>
+        </ul>
 
         <hr className="my-2 w-full" />
 
