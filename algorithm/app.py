@@ -20,10 +20,11 @@ API_SECRET = os.environ.get("INTERNAL_API_SECRET")
 
 @app.route("/")
 def main():
-    incoming_secret = request.headers.get("X-Internal-Secret")
+    # Secret key to check authorizaton
+    authorization_secret = request.headers.get("X-Internal-Secret")
 
+    # Which MONGODB database to use.
     database_name = request.headers.get("Database-Name")
-
     match database_name:
         case "development":
             mongo_uri = os.getenv("MONGODB_URI_DEV")
@@ -35,7 +36,7 @@ def main():
     if not mongo_uri:
         return jsonify({"error": "Environment variable not set"}), 500
 
-    if incoming_secret != API_SECRET:
+    if authorization_secret != API_SECRET:
         return jsonify({"error": "Unauthorized"}), 401
 
     print("Starting matching")
@@ -43,6 +44,7 @@ def main():
     if not period_id:
         return jsonify({"error": "Period not provided"}), 400
 
+    # Whether we should push the result directly to the database or just return the result
     push_to_db = request.args.get("pushToDB", "false").lower() == "true"
 
     applicants = fetch_applicants(period_id,
@@ -96,7 +98,7 @@ def add_matching_status(
         "total_wanted_meetings": match_result["total_wanted_meetings"],
         "matched_meetings": match_result["matched_meetings"],
     }
-    
+
     period_collection.find_one_and_update({"_id": ObjectId(period_id)}, {"$set": {
         "matching_status": matching_status
     }})
@@ -107,6 +109,9 @@ def send_to_db(match_result: MeetingMatch,
                period_id: str,
                mongo_uri: str,
                database_name: str):
+    """
+    Sends the matching results to the provided database.
+    """
     load_dotenv()
     formatted_results = format_match_results(
         match_result, applicants, period_id)
@@ -131,6 +136,11 @@ def send_to_db(match_result: MeetingMatch,
 def connect_to_db(collection_name,
                   mongo_uri: str,
                   database_name: str):
+    """
+    Establish connection to database.
+
+    Returns (collection, client).
+    """
     load_dotenv()
 
     client = MongoClient(mongo_uri, tlsCAFile=certifi.where())
@@ -144,6 +154,9 @@ def connect_to_db(collection_name,
 
 def fetch_periods(mongo_uri: str,
                   database_name: str):
+    """
+    Fetch period data.
+    """
     collection, client = connect_to_db("periods",
                                        mongo_uri,
                                        database_name)
@@ -158,6 +171,9 @@ def fetch_periods(mongo_uri: str,
 def fetch_applicants(periodId,
                      mongo_uri: str,
                      database_name: str):
+    """
+    Fetch applicant data.
+    """
     collection, client = connect_to_db("applications",
                                        mongo_uri=mongo_uri,
                                        database_name=database_name)
@@ -172,6 +188,9 @@ def fetch_applicants(periodId,
 def fetch_committee_times(periodId,
                           mongo_uri: str,
                           database_name: str):
+    """
+    Fetch committee data.
+    """
     collection, client = connect_to_db("committees",
                                        mongo_uri=mongo_uri,
                                        database_name=database_name)
@@ -184,6 +203,9 @@ def fetch_committee_times(periodId,
 
 
 def format_match_results(match_results: MeetingMatch, applicants: List[dict], periodId) -> List[Dict]:
+    """
+    Format result of matching to the database schema used in the database.
+    """
     transformed_results = {}
 
     for result in match_results['matchings']:
@@ -213,6 +235,9 @@ def format_match_results(match_results: MeetingMatch, applicants: List[dict], pe
 
 
 def create_applicant_objects(applicants_data: List[dict], all_committees: dict[str, Committee]) -> set[Applicant]:
+    """
+    Create applicant objects for use in mip_matching.
+    """
     applicants = set()
     for data in applicants_data:
         applicant = Applicant(name=str(data['_id']))
@@ -241,6 +266,9 @@ def create_applicant_objects(applicants_data: List[dict], all_committees: dict[s
 
 
 def create_committee_objects(committee_data: List[dict]) -> set[Committee]:
+    """
+    Create committee objects for use in mip_matching.
+    """
     committees = set()
     for data in committee_data:
         committee = Committee(name=data['committee'], interview_length=timedelta(
