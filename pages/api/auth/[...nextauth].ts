@@ -3,8 +3,6 @@ import Auth0Provider from "next-auth/providers/auth0";
 import SuperJSON from "superjson";
 import { OwGroup } from "../../../lib/types/types";
 
-const adminEmails = process.env.ADMIN_EMAILS?.split(",") || [];
-
 interface User {
   id: string;
   phone: string;
@@ -108,7 +106,7 @@ export const authOptions: NextAuthOptions = {
           token.subId = user.subId;
           token.committees = user.committees;
           token.isCommittee = user.isCommittee;
-          token.role = adminEmails.includes(user.email) ? "admin" : "user";
+          token.role = (user.committees?.includes("appkom") || user.committees?.includes("hs")) ? "admin" : "user";
         }
         return token;
       } catch (error) {
