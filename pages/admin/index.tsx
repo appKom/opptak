@@ -55,13 +55,13 @@ const Admin = () => {
           committees: period.committees,
           link: `/admin/${period._id}`,
         };
-      })
+      }),
     );
   }, [periodsData]);
 
   const deletePeriod = async (id: string, name: string) => {
     const isConfirmed = window.confirm(
-      `Er det sikker på at du ønsker å slette ${name}?`
+      `Er det sikker på at du ønsker å slette ${name}?`,
     );
     if (!isConfirmed) return;
     deletePeriodByIdMutation.mutate(id);

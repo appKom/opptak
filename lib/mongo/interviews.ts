@@ -31,3 +31,19 @@ export const getInterviewsByPeriod = async (periodId: string) => {
     return { error: "Failed to fetch interviews" };
   }
 };
+
+export const getInterviewsByPeriodAndApplicantId = async (
+  periodId: string,
+  applicantId: string,
+) => {
+  try {
+    if (!interviews) await init();
+    const result = await interviews.findOne({
+      periodId: periodId,
+      applicantId: applicantId,
+    });
+    return { interviews: result };
+  } catch (error) {
+    return { error: "Failed to fetch interviews" };
+  }
+};

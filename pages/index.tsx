@@ -49,6 +49,12 @@ const Home = () => {
               href="/committees"
               fullWidth
             />
+            <Button
+              title="Bekreft intervjuer"
+              color="white"
+              href="/confirmInterviews"
+              fullWidth
+            />
           </div>
         </div>
         <div className="hidden lg:mt-0 lg:col-span-5 lg:block">
