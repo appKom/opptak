@@ -161,6 +161,11 @@ const SendOutInterviews = ({ period }: Props) => {
               onClick={async () =>
                 await sendOutInterviewTimes({
                   periodId: period!._id.toString(),
+                }).then(() => {
+                  // refetch state
+                  queryClient.invalidateQueries({
+                    queryKey: ["periods", period?._id],
+                  });
                 })
               }
             />
