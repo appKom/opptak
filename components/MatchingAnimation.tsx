@@ -99,7 +99,7 @@ function buildGraph(seed: number): { nodes: GNode[]; edges: GEdge[] } {
   for (let l = 0; l < NL; l++) {
     const selected = new Set<number>();
     while (selected.size < 2) selected.add(Math.floor(rng() * NR));
-    for (const r of selected) edges.push({ id: eid++, from: l, to: NL + r });
+    for (const r of Array.from(selected)) edges.push({ id: eid++, from: l, to: NL + r });
   }
 
   return { nodes, edges };
@@ -233,7 +233,7 @@ function computeFrames(nodes: GNode[], edges: GEdge[]): AnimFrame[] {
       matchedNodeIds.add(e.to);
     }
   }
-  for (const nid of [...visNodes]) {
+  for (const nid of Array.from(visNodes)) {
     if (!matchedNodeIds.has(nid)) visNodes.delete(nid);
   }
   snap(280);
