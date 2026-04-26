@@ -61,7 +61,7 @@ const Admin = () => {
             ),
           },
           {
-            title: "Instillinger",
+            title: "Innstillinger",
             icon: <CogIcon className="w-5 h-5" />,
             content: <PeriodSettings period={period} />
           },
