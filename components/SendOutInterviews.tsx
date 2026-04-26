@@ -3,6 +3,7 @@ import { useState } from "react";
 import toast from "react-hot-toast";
 import { periodType } from "../lib/types/types";
 import Button from "./Button";
+import MatchingAnimation from "./MatchingAnimation";
 
 interface Props {
   period: periodType | null;
@@ -96,15 +97,15 @@ const SendOutInterviews = ({ period }: Props) => {
 
         <hr className="my-2 w-full" />
 
-        {!period?.hasMatchedInterviews && (
+        {!period?.hasMatchedInterviews && !isWaitingOnMatching && (
           <Button
-            title={isWaitingOnMatching ? "Kjører matching..." : "Kjør matching"}
+            title={"Kjør matching"}
             color={"blue"}
-            disabled={period?.hasMatchedInterviews || isWaitingOnMatching}
+            disabled={period?.hasMatchedInterviews}
             onClick={async () => {
               setIsWaitingOnMatching(true);
               await runMatching({ periodId: period!._id.toString() }).then(
-                (result) => {
+                () => {
                   setIsWaitingOnMatching(false);
 
                   // refetch state
@@ -116,6 +117,8 @@ const SendOutInterviews = ({ period }: Props) => {
             }}
           />
         )}
+
+        {isWaitingOnMatching && <MatchingAnimation />}
 
         {period?.hasMatchedInterviews && period.matching_status && (
           <div className="flex flex-col items-center p-2 border border-gray-300 gap-4">
@@ -158,6 +161,11 @@ const SendOutInterviews = ({ period }: Props) => {
               onClick={async () =>
                 await sendOutInterviewTimes({
                   periodId: period!._id.toString(),
+                }).then(() => {
+                  // refetch state
+                  queryClient.invalidateQueries({
+                    queryKey: ["periods", period?._id],
+                  });
                 })
               }
             />

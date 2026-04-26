@@ -11,6 +11,8 @@ import ErrorPage from "../../components/ErrorPage";
 import toast from "react-hot-toast";
 import { TableSkeleton } from "../../components/skeleton/TableSkeleton";
 import { SimpleTitle } from "../../components/Typography";
+import { StepByStep } from "../../components/StepByStep";
+import AdminIcon from "../../components/icons/icons/AdminIcon";
 
 const Admin = () => {
   const queryClient = useQueryClient();
@@ -55,13 +57,13 @@ const Admin = () => {
           committees: period.committees,
           link: `/admin/${period._id}`,
         };
-      })
+      }),
     );
   }, [periodsData]);
 
   const deletePeriod = async (id: string, name: string) => {
     const isConfirmed = window.confirm(
-      `Er det sikker på at du ønsker å slette ${name}?`
+      `Er det sikker på at du ønsker å slette ${name}?`,
     );
     if (!isConfirmed) return;
     deletePeriodByIdMutation.mutate(id);
@@ -85,11 +87,26 @@ const Admin = () => {
 
   return (
     <div className="flex flex-col items-center justify-center">
-      <SimpleTitle title="Opptaksperioder" />
+      <SimpleTitle title="Administrasjon av opptaksperioder" />
+
+      <div className="w-[30%]">
+        <StepByStep
+          item={{
+            title: "Hvordan gjennomføre opptak?",
+            content: [
+              "Opprett opptaksperiode ved å velge datoer og komiteer for opptaket.",
+              "Komitéer og søkere angir når de er ledige for intervjuer",
+              'Etter søknadsperioden, kjører du opptaket ved å gå inn på opptaket og følge instruksjonene under fanen "Send ut intervjutider".',
+            ],
+          }}
+        />
+
+        <hr className="w-full" />
+      </div>
 
       <div className="py-10">
         <Button
-          title="Ny opptaksperiode"
+          title="Opprett ny opptaksperiode"
           color="blue"
           href="/admin/new-period"
         />
