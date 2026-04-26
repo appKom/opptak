@@ -2,6 +2,10 @@
 
 This is a web application built with Next.js. It's designed to make the process of applying to committees at Online easier for both the applicants and the committees. This platform helps organize and manage applications, making everything simpler and more straightforward for everyone.
 
+## Repository structure
+The Next frontend and backend is hosted on Vercel through this repo.
+The directory [algorithm](./algorithm) is hosted as a separate Vercel project and hosts the matching algorithm.
+
 ## Getting Started
 
 ### Prerequisites
