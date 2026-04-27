@@ -1,6 +1,6 @@
-interface IsoTimeSlot {
-  start: string;
-  end: string;
+interface TimeSlot {
+  start: Date;
+  end: Date;
 }
 
 interface ScheduleTimeSlot {
@@ -9,24 +9,24 @@ interface ScheduleTimeSlot {
 }
 
 export const convertIsoToScheduleFormat = (
-  isoTimeSlots: IsoTimeSlot[],
+  timeSlots: TimeSlot[],
 ): ScheduleTimeSlot[] => {
-  return isoTimeSlots.map((slot) => {
-    const startDate = new Date(slot.start);
-    const endDate = new Date(slot.end);
+  return timeSlots.map((slot) => {
+    const startDate = slot.start;
+    const endDate = slot.end;
 
     // Convert date to YYYY-MM-DD format
     const date = startDate.toISOString().split("T")[0];
 
     // Convert times to HH:MM format
-    const startTime = startDate.toLocaleTimeString([], {
+    const timeFormat: Intl.DateTimeFormatOptions = {
       hour: "2-digit",
       minute: "2-digit",
-    });
-    const endTime = endDate.toLocaleTimeString([], {
-      hour: "2-digit",
-      minute: "2-digit",
-    });
+      hour12: false,
+      timeZone: "Europe/Oslo",
+    };
+    const startTime = startDate.toLocaleTimeString("nb-NO", timeFormat);
+    const endTime = endDate.toLocaleTimeString("nb-NO", timeFormat);
 
     const time = `${startTime} - ${endTime}`;
 

@@ -18,9 +18,9 @@ interface TimeSlot {
   available: boolean;
 }
 
-interface IsoTimeSlot {
-  start: string;
-  end: string;
+interface DateTimeSlot {
+  start: Date;
+  end: Date;
 }
 
 export default function Schedule({
@@ -37,14 +37,24 @@ export default function Schedule({
     periodTime: any,
   ): { [date: string]: string } => {
     if (!periodTime) return {};
-    const startDate = new Date(periodTime.start);
+    const startDate = new Date(
+      (periodTime.start instanceof Date
+        ? periodTime.start
+        : new Date(periodTime.start)
+      ).getTime(),
+    );
     startDate.setHours(startDate.getHours() + 2);
-    const endDate = new Date(periodTime.end);
+    const endDate = new Date(
+      (periodTime.end instanceof Date
+        ? periodTime.end
+        : new Date(periodTime.end)
+      ).getTime(),
+    );
     endDate.setHours(endDate.getHours() + 2);
     const dates: { [date: string]: string } = {};
     const dayNames = ["Søn", "Man", "Tir", "Ons", "Tor", "Fre", "Lør"];
 
-    let currentDate = new Date(startDate);
+    let currentDate = new Date(startDate.getTime());
 
     while (currentDate <= endDate) {
       const dayIndex = currentDate.getDay();
@@ -72,8 +82,8 @@ export default function Schedule({
     return [hour, minute];
   }, []);
 
-  const convertToIso = useCallback(
-    (date: string, timeSlot: string): IsoTimeSlot => {
+  const convertToDateSlot = useCallback(
+    (date: string, timeSlot: string): DateTimeSlot => {
       const [startTimeStr, endTimeStr] = timeSlot.split(" - ");
       const [year, month, day] = date.split("-").map(Number);
 
@@ -88,8 +98,8 @@ export default function Schedule({
       );
 
       return {
-        start: startTime.toISOString(),
-        end: endTime.toISOString(),
+        start: startTime,
+        end: endTime,
       };
     },
     [parseTime],
@@ -118,13 +128,13 @@ export default function Schedule({
       });
     });
 
-    const isoTimeSlotsForExport = allAvailableTimes.map((slot) =>
-      convertToIso(slot.date, slot.time),
+    const dateTimeSlotsForExport = allAvailableTimes.map((slot) =>
+      convertToDateSlot(slot.date, slot.time),
     );
 
     setApplicationData((prevData: any) => ({
       ...prevData,
-      selectedTimes: isoTimeSlotsForExport,
+      selectedTimes: dateTimeSlotsForExport,
     }));
     setIsInitialized(true);
   }, [
@@ -132,7 +142,7 @@ export default function Schedule({
     applicationData.selectedTimes,
     periodTime,
     timeSlots,
-    convertToIso,
+    convertToDateSlot,
     setApplicationData,
   ]);
 
@@ -185,12 +195,12 @@ export default function Schedule({
         });
       });
 
-      const isoTimeSlotsForExport = dataToSend.map((slot) =>
-        convertToIso(slot.date, slot.time),
+      const dateTimeSlotsForExport = dataToSend.map((slot) =>
+        convertToDateSlot(slot.date, slot.time),
       );
 
       // Queue the update instead of calling setApplicationData directly
-      setPendingUpdate(isoTimeSlotsForExport);
+      setPendingUpdate(dateTimeSlotsForExport);
 
       return newCells;
     });
@@ -198,13 +208,17 @@ export default function Schedule({
 
   const dates = getDatesWithinPeriod(periodTime);
 
-  let weekDates: { [date: string]: IsoTimeSlot[] } = {};
+  let weekDates: { [date: string]: DateTimeSlot[] } = {};
 
   Object.keys(dates).forEach((date) => {
     weekDates[date] = [];
     applicationData.selectedTimes?.forEach((slot) => {
-      if (slot?.start?.includes(date) && slot?.end) {
-        weekDates[date].push({ start: slot.start, end: slot.end });
+      if (slot?.start && slot?.end) {
+        const start = new Date(slot.start as unknown as string | number | Date);
+        const end = new Date(slot.end as unknown as string | number | Date);
+        if (start.toISOString().includes(date)) {
+          weekDates[date].push({ start, end });
+        }
       }
     });
   });

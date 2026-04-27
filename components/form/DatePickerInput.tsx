@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 interface Props {
   label?: string;
-  updateDates: (dates: { start: string; end: string }) => void;
+  updateDates: (dates: { start: Date | null; end: Date | null }) => void;
 }
 
 const DatePickerInput = (props: Props) => {
@@ -9,9 +9,9 @@ const DatePickerInput = (props: Props) => {
   const [toDate, setToDate] = useState("");
 
   useEffect(() => {
-    const startDate = fromDate ? `${fromDate}T00:00` : "";
-    const endDate = toDate ? `${toDate}T23:59` : "";
-    props.updateDates({ start: startDate, end: endDate });
+    const start = fromDate ? new Date(`${fromDate}T00:00`) : null;
+    const end = toDate ? new Date(`${toDate}T23:59`) : null;
+    props.updateDates({ start, end });
   }, [fromDate, toDate]);
 
   return (

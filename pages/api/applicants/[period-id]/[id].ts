@@ -40,9 +40,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
       }
       return res.status(200).json({ exists, application });
     } else if (req.method === "DELETE") {
-      const currentDate = new Date().toISOString();
-
-      if (new Date(period.applicationPeriod.end) < new Date(currentDate)) {
+      if (period.applicationPeriod.end < new Date()) {
         return res.status(403).json({ error: "Application period is over" });
       }
 

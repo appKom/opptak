@@ -59,17 +59,15 @@ export const getCurrentPeriods = async () => {
   try {
     if (!periods) await init();
 
-    const currentDate = new Date().toISOString();
+    const currentDate = new Date();
 
     const filter = {
       $or: [
         {
-          // Check if current ISO date string is within the application period
           "applicationPeriod.start": { $lte: currentDate },
           "applicationPeriod.end": { $gte: currentDate },
         },
         {
-          // Check if current ISO date string is within the interview period
           "interviewPeriod.start": { $lte: currentDate },
           "interviewPeriod.end": { $gte: currentDate },
         },

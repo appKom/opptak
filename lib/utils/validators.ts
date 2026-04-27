@@ -70,14 +70,19 @@ export const isApplicantType = (
   const hasSelectedTimes =
     Array.isArray(applicant.selectedTimes) &&
     applicant.selectedTimes.every(
-      (time: { start: string; end: string }) =>
-        typeof time.start === "string" &&
-        typeof time.end === "string" &&
-        new Date(time.start) >= interviewPeriodStart &&
-        new Date(time.start) <= interviewPeriodEnd &&
-        new Date(time.end) <= interviewPeriodEnd &&
-        new Date(time.end) >= interviewPeriodStart &&
-        new Date(time.start) < new Date(time.end),
+      (time: { start: Date | string; end: Date | string }) => {
+        const start = new Date(time.start);
+        const end = new Date(time.end);
+        return (
+          !isNaN(start.getTime()) &&
+          !isNaN(end.getTime()) &&
+          start >= interviewPeriodStart &&
+          start <= interviewPeriodEnd &&
+          end <= interviewPeriodEnd &&
+          end >= interviewPeriodStart &&
+          start < end
+        );
+      },
     );
 
   const periodOptionalCommittees = period.optionalCommittees.map((committee) =>
@@ -122,8 +127,8 @@ export const validateCommittee = (data: any, period: periodType): boolean => {
     typeof data.timeslot === "string" &&
     Array.isArray(data.availabletimes) &&
     data.availabletimes.every(
-      (time: { start: string; end: string }) =>
-        typeof time.start === "string" && typeof time.end === "string",
+      (time: { start: Date; end: Date }) =>
+        time.start instanceof Date && time.end instanceof Date,
     );
 
   const isPeriodNameValid = data.periodId === String(period._id);
@@ -138,16 +143,19 @@ export const validateCommittee = (data: any, period: periodType): boolean => {
       return committee.toLowerCase() === data.committee.toLowerCase();
     });
 
+  const intStart = new Date(period.interviewPeriod.start);
+  const intEnd = new Date(period.interviewPeriod.end);
+
   const isWithinInterviewPeriod = data.availabletimes.every(
-    (time: { start: string; end: string }) => {
+    (time: { start: string | Date; end: string | Date }) => {
       const startTime = new Date(time.start);
       const endTime = new Date(time.end);
 
       return (
-        startTime >= new Date(period.interviewPeriod.start) &&
-        startTime <= new Date(period.interviewPeriod.end) &&
-        endTime <= new Date(period.interviewPeriod.end) &&
-        endTime >= new Date(period.interviewPeriod.start) &&
+        startTime >= intStart &&
+        startTime <= intEnd &&
+        endTime <= intEnd &&
+        endTime >= intStart &&
         startTime < endTime
       );
     },

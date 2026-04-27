@@ -9,6 +9,7 @@ import {
 } from "../../../../../lib/utils/validators";
 import { getPeriodById } from "../../../../../lib/mongo/periods";
 import { committeeInterviewType } from "../../../../../lib/types/types";
+import { parseCommitteeDates } from "../../../../../lib/utils/parseDates";
 
 const handler = async (req: NextApiRequest, res: NextApiResponse) => {
   const session = await getServerSession(req, res, authOptions);
@@ -24,18 +25,18 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
   if (!isInCommitee(res, session)) return;
 
   if (req.method === "POST") {
-    const committeeData: committeeInterviewType = req.body;
-
     if (!isCommitteeType(req.body)) {
       return res.status(400).json({ error: "Invalid data format" });
     }
+
+    const committeeData = parseCommitteeDates(req.body);
 
     const { period } = await getPeriodById(String(committeeData.periodId));
     if (!period) {
       return res.status(400).json({ error: "Invalid periodId" });
     }
 
-    if (new Date() > new Date(period.applicationPeriod.end)) {
+    if (new Date() > period.applicationPeriod.end) {
       return res.status(400).json({ error: "Application period has ended" });
     }
 

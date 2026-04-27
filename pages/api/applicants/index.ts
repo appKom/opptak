@@ -12,6 +12,7 @@ import { isApplicantType } from "../../../lib/utils/validators";
 import { isAdmin, hasSession, checkOwId } from "../../../lib/utils/apiChecks";
 import { sendConfirmationSMS } from "../../../lib/sms/sendConfirmationSMS";
 import { sendConfirmationEmail } from "../../../lib/email/sendConfirmationEmail";
+import { parseApplicantDates } from "../../../lib/utils/parseDates";
 
 const handler = async (req: NextApiRequest, res: NextApiResponse) => {
   const session = await getServerSession(req, res, authOptions);
@@ -28,8 +29,8 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
     }
 
     if (req.method === "POST") {
-      const requestBody: applicantType = req.body;
-      requestBody.date = new Date(new Date().getTime() + 60 * 60 * 2000); // add date with norwegain time (GMT+2)
+      const requestBody = parseApplicantDates(req.body);
+      requestBody.date = new Date();
 
       const { period } = await getPeriodById(String(requestBody.periodId));
 
@@ -37,7 +38,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
         return res.status(400).json({ error: "Invalid period id" });
       }
 
-      if (!isApplicantType(req.body, period)) {
+      if (!isApplicantType(requestBody, period)) {
         return res.status(400).json({ error: "Invalid data format" });
       }
 
@@ -79,8 +80,8 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
     }
 
     if (req.method === "PUT") {
-      const requestBody: applicantType = req.body;
-      requestBody.date = new Date(new Date().getTime() + 60 * 60 * 2000); // add date with norwegian time (GMT+2). TODO: Fix workaround in #415
+      const requestBody = parseApplicantDates(req.body);
+      requestBody.date = new Date();
 
       // Remove _id field to prevent MongoDB immutable field error
       if ("_id" in requestBody) {
@@ -93,7 +94,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
         return res.status(400).json({ error: "Invalid period id" });
       }
 
-      if (!isApplicantType(req.body, period)) {
+      if (!isApplicantType(requestBody, period)) {
         return res.status(400).json({ error: "Invalid data format" });
       }
 

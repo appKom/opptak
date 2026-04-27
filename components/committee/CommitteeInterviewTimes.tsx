@@ -63,8 +63,8 @@ const CommitteeInterviewTimes = ({
   useEffect(() => {
     if (period) {
       setVisibleRange({
-        start: new Date(period!.interviewPeriod.start).toISOString(),
-        end: new Date(period!.interviewPeriod.end).toISOString(),
+        start: period.interviewPeriod.start.toISOString(),
+        end: period.interviewPeriod.end.toISOString(),
       });
     }
   }, [period]);
@@ -101,8 +101,8 @@ const CommitteeInterviewTimes = ({
           (at: any) => ({
             id: crypto.getRandomValues(new Uint32Array(1))[0].toString(),
             title: at.room,
-            start: new Date(at.start).toISOString(),
-            end: new Date(at.end).toISOString(),
+            start: at.start instanceof Date ? at.start.toISOString() : at.start,
+            end: at.end instanceof Date ? at.end.toISOString() : at.end,
           })
         );
 
@@ -317,10 +317,9 @@ const CommitteeInterviewTimes = ({
   }, [period]);
 
   const getSubmissionDeadline = (): string => {
-    const deadlineIso = period!.applicationPeriod.end;
+    const deadlineDate = period!.applicationPeriod.end;
 
-    if (deadlineIso != null && !deadLineHasPassed) {
-      const deadlineDate = new Date(deadlineIso);
+    if (deadlineDate != null && !deadLineHasPassed) {
       const now = new Date();
 
       if (now > deadlineDate) {

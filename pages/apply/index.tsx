@@ -28,18 +28,13 @@ const Apply = () => {
 
     setCurrentPeriods(
       periodsData.periods.filter((period: periodType) => {
-        const startDate = new Date(period.applicationPeriod.start || "");
-        const endDate = new Date(period.applicationPeriod.end || "");
-
-        return startDate <= today && endDate >= today;
+        return period.applicationPeriod.start <= today && period.applicationPeriod.end >= today;
       })
     );
 
     setUpcomingPeriods(
       periodsData.periods.filter((period: periodType) => {
-        const startDate = new Date(period.applicationPeriod.start || "");
-
-        return startDate >= today
+        return period.applicationPeriod.start >= today;
       })
     )
   }, [periodsData]);

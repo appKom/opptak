@@ -168,9 +168,7 @@ const committeeIsInActivePeriod = (
   const today = new Date();
 
   const activePeriods = periods.filter((period) => {
-    const applicationStart = new Date(period.applicationPeriod.start);
-    const applicationEnd = new Date(period.applicationPeriod.end);
-    return applicationStart <= today && applicationEnd >= today;
+    return period.applicationPeriod.start <= today && period.applicationPeriod.end >= today;
   });
 
   // Bankom is always active, since you can be a representative of bankom from each committee
@@ -194,9 +192,7 @@ const committeeIsCurrentlyInterviewing = (
   const today = new Date();
 
   const periodsWithInterviewsCurrently = periods.filter((period) => {
-    const interviewStart = new Date(period.interviewPeriod.start);
-    const interviewEnd = new Date(period.interviewPeriod.end);
-    return interviewStart <= today && interviewEnd >= today;
+    return period.interviewPeriod.start <= today && period.interviewPeriod.end >= today;
   });
 
   // Bankom is always active, since you can be a representative of bankom from each committee

@@ -7,7 +7,7 @@ interface Props {
   date: string;
   weekDay: string;
   interviewLength: number;
-  availableSlots: { start: string; end: string }[];
+  availableSlots: { start: Date; end: Date }[];
   onToggleAvailability: (
     date: string,
     time: string,
@@ -27,13 +27,7 @@ export default function ScheduleColumn({
   const dateOfMonth = date.split("-")[2];
   const month = date.split("-")[1];
 
-  const adjustedAvailableSlots = availableSlots.map((slot) => {
-    slot.start = slot.start.replace("Z", "");
-    slot.end = slot.end.replace("Z", "");
-    return slot;
-  });
-
-  const availableTimeSlots = convertIsoToScheduleFormat(adjustedAvailableSlots);
+  const availableTimeSlots = convertIsoToScheduleFormat(availableSlots);
   const availableTimes = availableTimeSlots.map((slot) => {
     let [firstTime, secondTime] = slot.time.split(" - ").map((s) => s.trim());
     return `${firstTime} - ${secondTime}`;

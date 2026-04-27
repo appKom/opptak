@@ -50,7 +50,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
         return res.status(400).json({ error: "Invalid periodId" });
       }
 
-      if (new Date() > new Date(period.applicationPeriod.end)) {
+      if (new Date() > period.applicationPeriod.end) {
         return res.status(400).json({ error: "Application period has ended" });
       }
 

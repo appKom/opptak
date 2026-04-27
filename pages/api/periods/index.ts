@@ -5,6 +5,7 @@ import { periodType } from "../../../lib/types/types";
 import { createPeriod, getPeriods } from "../../../lib/mongo/periods";
 import { hasSession, isAdmin } from "../../../lib/utils/apiChecks";
 import { isPeriodType } from "../../../lib/utils/validators";
+import { parsePeriodDates } from "../../../lib/utils/parseDates";
 
 const handler = async (req: NextApiRequest, res: NextApiResponse) => {
   const session = await getServerSession(req, res, authOptions);
@@ -22,11 +23,12 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
 
     if (req.method === "POST") {
       if (!isAdmin(res, session)) return;
-      const period = req.body as periodType;
 
       if (!isPeriodType(req.body)) {
         return res.status(400).json({ error: "Invalid data format" });
       }
+
+      const period = parsePeriodDates(req.body);
 
       const { error } = await createPeriod(period);
       if (error) throw new Error(error);

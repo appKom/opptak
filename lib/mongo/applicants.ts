@@ -193,16 +193,16 @@ export const getApplicantsForCommittee = async (
           userCommittees.includes(preference),
         );
 
-        // Skjuler søkerinformasjon for komitéen etter syv dager etter intervjuperioden
+        // Skjuler søkerinformasjon for komitéen etter fem dager etter intervjuperioden
         const today = new Date();
-        const sevenDaysAfterInterviewEnd = new Date(period.interviewPeriod.end);
-        sevenDaysAfterInterviewEnd.setDate(
-          sevenDaysAfterInterviewEnd.getDate() + 5,
+        const fiveDaysAfterInterviewEnd = new Date(period.interviewPeriod.end.getTime());
+        fiveDaysAfterInterviewEnd.setDate(
+          fiveDaysAfterInterviewEnd.getDate() + 5,
         );
 
         if (
-          new Date(period.applicationPeriod.end) > today ||
-          today > sevenDaysAfterInterviewEnd
+          period.applicationPeriod.end > today ||
+          today > fiveDaysAfterInterviewEnd
         ) {
           applicant.owId = "Skjult";
           applicant.name = "Skjult";
@@ -211,7 +211,7 @@ export const getApplicantsForCommittee = async (
           applicant.email = "Skjult";
           applicant.about = "Skjult";
           applicant.grade = "-";
-          applicant.selectedTimes = [{ start: "Skjult", end: "Skjult" }];
+          applicant.selectedTimes = [{ start: new Date(0), end: new Date(0) }];
         }
 
         const isSelectedCommitteePresent =

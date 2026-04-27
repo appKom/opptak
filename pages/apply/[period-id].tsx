@@ -151,10 +151,7 @@ const Application: NextPage = () => {
 
     setPeriod(periodData.period);
 
-    const currentDate = new Date().toISOString();
-    if (
-      new Date(periodData.period.applicationPeriod.end) < new Date(currentDate)
-    ) {
+    if (periodData.period.applicationPeriod.end < new Date()) {
       setIsApplicationPeriodOver(true);
     }
   }, [periodData]);

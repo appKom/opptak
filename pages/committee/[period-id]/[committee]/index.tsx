@@ -82,9 +82,7 @@ const CommitteeApplicantOverview: NextPage = () => {
   if (periodIsError || interviewTimesIsError) return <ErrorPage />;
   if (!hasAccess) return <Custom404 />;
 
-  const interviewPeriodEnd = period?.interviewPeriod.end
-    ? new Date(period.interviewPeriod.end)
-    : null;
+  const interviewPeriodEnd = period?.interviewPeriod.end ?? null;
 
   // Satt frist til 14 dager etter intervju perioden, så får man ikke tilgang
   const interviewAccessExpired =

@@ -1,55 +1,54 @@
 export const formatDate = (inputDate: undefined | Date) => {
-  const date = new Date(inputDate || "");
+  if (!inputDate) return "";
 
-  const day = date.getDate().toString().padStart(2, "0");
-  const month = (date.getMonth() + 1).toString().padStart(2, "0");
-  const year = date.getFullYear();
-  const hours = date.getHours().toString().padStart(2, "0");
-  const minutes = date.getMinutes().toString().padStart(2, "0");
+  const date = inputDate instanceof Date ? inputDate : new Date(inputDate);
 
-  return `${day}.${month}.${year}`; //  - ${hours}:${minutes}
+  return date.toLocaleDateString("nb-NO", {
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+    timeZone: "Europe/Oslo",
+  });
 };
 
 export const formatDateHours = (
-  start: string,
-  end: string
+  start: string | Date,
+  end: string | Date,
 ) => {
-  const startDate = new Date(Date.parse(start));
+  const startDate = start instanceof Date ? start : new Date(start);
+  const endDate = end instanceof Date ? end : new Date(end);
 
-  const startTime = start.split("T")[1].slice(0, 5);
-  const endTime = end.split("T")[1].slice(0, 5);
+  const timeFormat: Intl.DateTimeFormatOptions = {
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false,
+    timeZone: "Europe/Oslo",
+  };
 
-  return `${formatDateNorwegian(
-    startDate
-  )}, ${startTime} til ${endTime}`;
+  const startTime = startDate.toLocaleTimeString("nb-NO", timeFormat);
+  const endTime = endDate.toLocaleTimeString("nb-NO", timeFormat);
+
+  return `${formatDateNorwegian(startDate)}, ${startTime} til ${endTime}`;
 };
 
 export const formatDateNorwegian = (inputDate?: Date | string) => {
   if (!inputDate) return "";
 
-  let date: Date;
-  if (inputDate instanceof Date) {
-    date = inputDate;
-  } else {
-    date = new Date(inputDate);
-  }
+  const date = inputDate instanceof Date ? inputDate : new Date(inputDate);
 
-  const day = date.getUTCDate().toString().padStart(2, "0");
-  const monthsNorwegian = [
-    "jan",
-    "feb",
-    "mar",
-    "apr",
-    "mai",
-    "jun",
-    "jul",
-    "aug",
-    "sep",
-    "okt",
-    "nov",
-    "des",
-  ];
-  const month = monthsNorwegian[date.getUTCMonth()];
+  const day = date
+    .toLocaleDateString("nb-NO", {
+      day: "2-digit",
+      timeZone: "Europe/Oslo",
+    })
+    .replace(".", "");
+
+  const month = date
+    .toLocaleDateString("nb-NO", {
+      month: "short",
+      timeZone: "Europe/Oslo",
+    })
+    .replace(".", "");
 
   return `${day}. ${month}`;
 };

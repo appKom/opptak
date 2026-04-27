@@ -84,14 +84,14 @@ const NewPeriod = () => {
     start,
     end,
   }: {
-    start: string;
-    end: string;
+    start: Date | null;
+    end: Date | null;
   }) => {
     setPeriodData((prevData) => ({
       ...prevData,
       applicationPeriod: {
-        start: start ? new Date(start) : undefined,
-        end: end ? new Date(end) : undefined,
+        start: start ?? undefined,
+        end: end ?? undefined,
       },
     }));
   };
@@ -100,14 +100,14 @@ const NewPeriod = () => {
     start,
     end,
   }: {
-    start: string;
-    end: string;
+    start: Date | null;
+    end: Date | null;
   }) => {
     setPeriodData((prevData) => ({
       ...prevData,
       interviewPeriod: {
-        start: start ? new Date(start) : undefined,
-        end: end ? new Date(end) : undefined,
+        start: start ?? undefined,
+        end: end ?? undefined,
       },
     }));
   };
