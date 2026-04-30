@@ -54,7 +54,7 @@ export const authOptions: NextAuthOptions = {
 
           // Get committees of user
           const commiteeUrl = `${API_BASE_URL}/group.allByMember?input=${encodeURIComponent(
-            SuperJSON.stringify(userInfo.id),
+            SuperJSON.stringify({userId: userInfo.id}),
           )}`;
 
           const committeeResponse = await fetch(commiteeUrl, {
