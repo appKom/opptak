@@ -25,8 +25,7 @@ import { OwGroup } from "../lib/types/types";
 
 const COMMITTEE_VIDEOS: Record<string, string> = {
   // Format — Forkortelse: "YouTube-link" (takler watch?v=, youtu.be/ og shorts/)
-  Appkom: "https://youtube.com/shorts/KZdBV9jJrzw",
-  Dotkom: "https://www.youtube.com/shorts/pIf2iqW3_IU",
+  Appkom: "https://youtube.com/shorts/KZdBV9jJrzw"
 };
 
 // Hvor lenge hvert bilde står i vekslingen (ms) — logoen står lengst, så
