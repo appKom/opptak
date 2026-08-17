@@ -78,14 +78,18 @@ export default function Schedule({
       const [year, month, day] = date.split("-").map(Number);
 
       const [startHour, startMinute] = parseTime(startTimeStr);
-      const startTime = new Date(year, month - 1, day, startHour, startMinute);
+      const startTime = new Date(
+        Date.UTC(year, month - 1, day, startHour, startMinute),
+      );
 
       const [endHour, endMinute] = parseTime(endTimeStr);
-      const endTime = new Date(year, month - 1, day, endHour, endMinute);
+      const endTime = new Date(
+        Date.UTC(year, month - 1, day, endHour, endMinute),
+      );
 
       return {
-        start: startTime.toISOString(),
-        end: endTime.toISOString(),
+        start: startTime.toISOString().replace("Z", ""),
+        end: endTime.toISOString().replace("Z", ""),
       };
     },
     [parseTime],

@@ -224,11 +224,10 @@ def format_match_results(match_results: MeetingMatch, applicants: List[dict], pe
 
         committee = result[1]
         time_interval = result[2]
-        shifted_start = time_interval.start + timedelta(hours=2)
-        shifted_end = time_interval.end + timedelta(hours=2)
 
-        start = shifted_start.strftime('%Y-%m-%dT%H:%M:%S.000Z')
-        end = shifted_end.strftime('%Y-%m-%dT%H:%M:%S.000Z')
+        start = time_interval.start + timedelta(hours=2)
+        end = time_interval.end + timedelta(hours=2)
+        
         room = result[3]
 
         transformed_results[applicant_id]["interviews"].append({
