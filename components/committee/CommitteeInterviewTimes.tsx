@@ -103,7 +103,7 @@ const CommitteeInterviewTimes = ({
             title: at.room,
             start: new Date(at.start).toISOString(),
             end: new Date(at.end).toISOString(),
-          })
+          }),
         );
 
         setCalendarEvents(events);
@@ -219,7 +219,7 @@ const CommitteeInterviewTimes = ({
 
   const removeCell = (event: Interview) => {
     setCalendarEvents((prevEvents) =>
-      prevEvents.filter((evt) => evt.id !== event.id)
+      prevEvents.filter((evt) => evt.id !== event.id),
     );
 
     setUnsavedChanges(true);
@@ -266,10 +266,14 @@ const CommitteeInterviewTimes = ({
     return events.map((event) => {
       const startDateTime = new Date(event.start);
       const endDateTime = new Date(event.end);
+
+      startDateTime.setHours(startDateTime.getHours() + 2);
+      endDateTime.setHours(endDateTime.getHours() + 2);
+
       return {
         room: event.title,
-        start: startDateTime.toISOString(),
-        end: endDateTime.toISOString(),
+        start: startDateTime.toISOString().replace("Z", ""),
+        end: endDateTime.toISOString().replace("Z", ""),
       };
     });
   };
@@ -287,7 +291,7 @@ const CommitteeInterviewTimes = ({
         `/api/committees/times/${period?._id}/${committee}`,
         {
           method: "DELETE",
-        }
+        },
       );
 
       if (!response.ok) {
@@ -361,7 +365,7 @@ const CommitteeInterviewTimes = ({
     }, 0);
 
     const plannedInterviews = Math.floor(
-      totalMinutes / parseInt(selectedTimeslot)
+      totalMinutes / parseInt(selectedTimeslot),
     );
     setInterviewsPlanned(plannedInterviews);
   };
