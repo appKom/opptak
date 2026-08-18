@@ -225,9 +225,9 @@ def format_match_results(match_results: MeetingMatch, applicants: List[dict], pe
         committee = result[1]
         time_interval = result[2]
 
-        start = time_interval.start + timedelta(hours=2)
-        end = time_interval.end + timedelta(hours=2)
-        
+        start = time_interval.start.isoformat()
+        end = time_interval.end.isoformat()
+
         room = result[3]
 
         transformed_results[applicant_id]["interviews"].append({
