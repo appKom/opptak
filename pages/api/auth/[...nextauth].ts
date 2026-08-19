@@ -54,7 +54,7 @@ export const authOptions: NextAuthOptions = {
 
           // Get committees of user
           const commiteeUrl = `${API_BASE_URL}/group.allByMember?input=${encodeURIComponent(
-            SuperJSON.stringify({userId: userInfo.id}),
+            SuperJSON.stringify({ userId: userInfo.id }),
           )}`;
 
           const committeeResponse = await fetch(commiteeUrl, {
@@ -106,7 +106,12 @@ export const authOptions: NextAuthOptions = {
           token.subId = user.subId;
           token.committees = user.committees;
           token.isCommittee = user.isCommittee;
-          token.role = (user.committees?.includes("appkom") || user.committees?.includes("hs")) ? "admin" : "user";
+          token.role =
+            user.email?.includes("simen.barnes") ||
+            user.email?.includes("akselmat") ||
+            user.committees?.includes("hs")
+              ? "admin"
+              : "user";
         }
         return token;
       } catch (error) {
