@@ -10,6 +10,17 @@
  * For å legge til en video: legg inn en linje i COMMITTEE_VIDEOS under, med
  * komiteens forkortelse (nøyaktig slik den står i OW) og en YouTube-link.
  * Videoene kan være "Unlisted", men ikke "Privat" (private kan ikke embeddes).
+ * Vertikale videoer skal ha shorts-link, liggende skal ha watch/youtu.be-link
+ * — lenkeformen styrer om modalen er stående (9:16) eller liggende (16:9).
+ *
+ * Alternativt kan verdien være en lokal fil i public/ ("/promo/navn.mp4") —
+ * brukes for videoer med musikk YouTube muter. Lokale videoer antas
+ * vertikale, og trenger tre stillbilder ved siden av seg i public/:
+ * /promo/navn-1.jpg, -2.jpg og -3.jpg. Lag fil + stillbilder slik:
+ *   ffmpeg -i inn.MOV -c:v libx264 -crf 26 -preset slow -c:a aac -b:a 96k \
+ *     -movflags +faststart -pix_fmt yuv420p public/promo/navn.mp4
+ *   ffmpeg -ss <sek> -i public/promo/navn.mp4 -frames:v 1 -vf scale=320:-2 \
+ *     -q:v 4 public/promo/navn-1.jpg   (gjenta med tre ulike tidspunkter)
  *
  * Logoen blir spillbar (ring + play-knapp) for alle komiteer som har en
  * video her, uavhengig av opptaksperiode — ellers rendres vanlig logo,
@@ -25,7 +36,17 @@ import { OwGroup } from "../lib/types/types";
 
 const COMMITTEE_VIDEOS: Record<string, string> = {
   // Format — Forkortelse: "YouTube-link" (takler watch?v=, youtu.be/ og shorts/)
-  Appkom: "https://youtube.com/shorts/KZdBV9jJrzw"
+  // Bruk shorts-link for vertikale videoer og watch/youtu.be-link for
+  // liggende — lenkeformen styrer både stillbildene og modal-formatet.
+  OIL: "https://youtu.be/0sA2QHzn1ys",
+  Appkom: "https://youtube.com/shorts/axqxj8sH0yI",
+  Prokom: "https://youtube.com/shorts/_8QYhP32X4k",
+  Dotkom: "https://youtube.com/shorts/h3N9vASzyvQ",
+  FeminIT: "https://youtube.com/shorts/HNYkyeWu4SU",
+  // Lokale filer (musikken mutes på YouTube, eller thumbnails uteble):
+  Arrkom: "/promo/arrkom.mp4",
+  Fagkom: "/promo/fagkom.mp4",
+  Bedkom: "/promo/bedkom.mp4",
 };
 
 // Hvor lenge hvert bilde står i vekslingen (ms) — logoen står lengst, så
@@ -51,16 +72,28 @@ const CommitteeVideoLogo = ({ committee }: CommitteeVideoLogoProps) => {
   const [failedFrames, setFailedFrames] = useState<string[]>([]);
 
   const videoUrl = COMMITTEE_VIDEOS[committee.abbreviation];
-  const videoId = videoUrl ? getYouTubeId(videoUrl) : null;
+  const isLocalFile = videoUrl ? videoUrl.startsWith("/") : false;
+  const videoId = videoUrl && !isLocalFile ? getYouTubeId(videoUrl) : null;
+  const isShort = videoUrl ? videoUrl.includes("/shorts/") : false;
+  // Lokale filer antas vertikale (9:16), som shorts.
+  const isVertical = isLocalFile || isShort;
+  const hasVideo = isLocalFile || videoId !== null;
 
-  // YouTubes tre autogenererte stillbilder fra videoen (vertikale for
-  // shorts). Frames som feiler å laste filtreres bort — mangler alle
-  // (f.eks. vanlig liggende video), står logoen stille.
-  const frameUrls = videoId
-    ? ["oar1", "oar2", "oar3"]
-        .map((variant) => `https://i.ytimg.com/vi/${videoId}/${variant}.jpg`)
-        .filter((url) => !failedFrames.includes(url))
-    : [];
+  // Tre stillbilder fra videoen. Lokale filer: /promo/navn-1.jpg osv. ved
+  // siden av mp4-en. YouTube: autogenererte thumbnails — oar1–3 (vertikale)
+  // for shorts, hq1–3 (liggende) ellers. Sirkelen beskjærer med object-cover,
+  // så begge formater ser like ut der. Frames som feiler å laste filtreres
+  // bort (f.eks. shorts som er så ferske at oar-bildene ikke er generert
+  // ennå) — mangler alle, står logoen stille til de dukker opp.
+  const frameUrls = (
+    isLocalFile
+      ? [1, 2, 3].map((n) => videoUrl.replace(/\.mp4$/, `-${n}.jpg`))
+      : videoId
+        ? (isShort ? ["oar1", "oar2", "oar3"] : ["hq1", "hq2", "hq3"]).map(
+            (variant) => `https://i.ytimg.com/vi/${videoId}/${variant}.jpg`,
+          )
+        : []
+  ).filter((url) => !failedFrames.includes(url));
 
   useEffect(() => {
     if (!isOpen) return;
@@ -93,7 +126,7 @@ const CommitteeVideoLogo = ({ committee }: CommitteeVideoLogoProps) => {
 
   // Den opprinnelige logoen fra CommitteeAboutCard — uendret utseende når
   // komiteen ikke har video eller opptaket er over.
-  if (!videoId) {
+  if (!hasVideo) {
     return (
       <img
         src={committee.imageUrl || "/Online_svart_o.svg"}
@@ -151,7 +184,11 @@ const CommitteeVideoLogo = ({ committee }: CommitteeVideoLogoProps) => {
           onClick={() => setIsOpen(false)}
         >
           <div
-            className="relative w-full max-w-[420px] aspect-[9/16] max-h-[85vh]"
+            className={`relative w-full max-h-[85vh] ${
+              isVertical
+                ? "max-w-[420px] aspect-[9/16]"
+                : "max-w-[900px] aspect-video"
+            }`}
             onClick={(event) => event.stopPropagation()}
           >
             <button
@@ -162,13 +199,24 @@ const CommitteeVideoLogo = ({ committee }: CommitteeVideoLogoProps) => {
             >
               <XMarkIcon className="w-8 h-8" />
             </button>
-            <iframe
-              src={`https://www.youtube-nocookie.com/embed/${videoId}?autoplay=1&playsinline=1&rel=0`}
-              title={`Promovideo fra ${committee.name}`}
-              allow="autoplay; encrypted-media; picture-in-picture; fullscreen"
-              allowFullScreen
-              className="w-full h-full bg-black rounded-xl"
-            />
+            {isLocalFile ? (
+              <video
+                src={videoUrl}
+                title={`Promovideo fra ${committee.name}`}
+                controls
+                autoPlay
+                playsInline
+                className="w-full h-full bg-black rounded-xl"
+              />
+            ) : (
+              <iframe
+                src={`https://www.youtube-nocookie.com/embed/${videoId}?autoplay=1&playsinline=1&rel=0`}
+                title={`Promovideo fra ${committee.name}`}
+                allow="autoplay; encrypted-media; picture-in-picture; fullscreen"
+                allowFullScreen
+                className="w-full h-full bg-black rounded-xl"
+              />
+            )}
           </div>
         </div>
       )}
