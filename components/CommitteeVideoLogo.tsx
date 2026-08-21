@@ -47,6 +47,7 @@ const COMMITTEE_VIDEOS: Record<string, string> = {
   Arrkom: "/promo/arrkom.mp4",
   Fagkom: "/promo/fagkom.mp4",
   Bedkom: "/promo/bedkom.mp4",
+  Trikom: "/promo/trikom.mp4",
 };
 
 // Hvor lenge hvert bilde står i vekslingen (ms) — logoen står lengst, så
