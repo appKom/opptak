@@ -88,8 +88,8 @@ export default function Schedule({
       );
 
       return {
-        start: startTime.toISOString(),
-        end: endTime.toISOString(),
+        start: startTime.toISOString().replace("Z", ""),
+        end: endTime.toISOString().replace("Z", ""),
       };
     },
     [parseTime],

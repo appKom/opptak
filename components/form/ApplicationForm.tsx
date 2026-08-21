@@ -219,6 +219,48 @@ export const ApplicationForm = (props: Props) => {
           />
         )}
         <Line />
+
+        <div className="flex flex-col gap-3 p-4 my-4 text-sm leading-relaxed text-gray-700 bg-gray-100 rounded-lg dark:bg-gray-800 dark:text-gray-300">
+          <p>
+            Du kan velge opptil tre komiteer i valgene ovenfor. I tillegg kan du
+            søke på andre verv eller komiteer som er listet nedenfor.
+          </p>
+          <p>
+            <span className="font-semibold text-gray-900 dark:text-white">
+              Ønsker du å søke på både komiteer fra valgene ovenfor og noen av
+              alternativene nedenfor,
+            </span>{" "}
+            fyller du ut valgene ovenfor og svarer Ja på de aktuelle
+            spørsmålene.
+          </p>
+          <p>
+            <span className="font-semibold text-gray-900 dark:text-white">
+              Ønsker du kun å søke på alternativene nedenfor,
+            </span>{" "}
+            kan du la valgene ovenfor stå tomme og bare svare Ja på det du
+            ønsker å søke på.
+          </p>
+        </div>
+
+        {optionalCommittees.map((committee) => (
+          <div key={committee}>
+            <RadioInput
+              values={[
+                ["Ja", "ja"],
+                ["Nei", "nei"],
+              ]}
+              label={`Ønsker du å søke ${changeDisplayName(committee)} ${
+                availableCommittees.length > 1 ? "?" : "?"
+              }`}
+              defaultValue={
+                selectedOptionalCommittees.includes(committee) ? "ja" : "nei"
+              }
+              updateInputValues={(value: string) =>
+                addOptionalCommittee(committee, value)
+              }
+            />
+          </div>
+        ))}
         <RadioInput
           values={[
             ["Ja", "ja"],
@@ -234,25 +276,6 @@ export const ApplicationForm = (props: Props) => {
             })
           }
         />
-        {optionalCommittees.map((committee) => (
-          <div key={committee}>
-            <RadioInput
-              values={[
-                ["Ja", "ja"],
-                ["Nei", "nei"],
-              ]}
-              label={`Ønsker du å søke ${changeDisplayName(committee)} ${
-                availableCommittees.length > 1 ? "i tillegg?" : "?"
-              }`}
-              defaultValue={
-                selectedOptionalCommittees.includes(committee) ? "ja" : "nei"
-              }
-              updateInputValues={(value: string) =>
-                addOptionalCommittee(committee, value)
-              }
-            />
-          </div>
-        ))}
       </form>
     </div>
   );
