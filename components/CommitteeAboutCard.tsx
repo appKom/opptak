@@ -1,5 +1,6 @@
 import { OwGroup } from "../lib/types/types";
 import DOMPurify from 'dompurify';
+import CommitteeVideoLogo from "./CommitteeVideoLogo";
 
 interface CommitteeAboutCardProps {
   committee: OwGroup;
@@ -13,11 +14,9 @@ const CommitteeAboutCard = ({
   isInterviewing,
 }: CommitteeAboutCardProps) => (
   <div>
-    <img
-      src={committee.imageUrl || "/Online_svart_o.svg"}
-      alt={committee.name}
-      className="w-16 h-16 p-1 mb-2 bg-white rounded-full md:w-24 md:h-24"
-    />
+    {/* MIDLERTIDIG: promovideo-logo — fjern importen over og bytt tilbake til
+        den opprinnelige <img>-en (står ordrett i CommitteeVideoLogo.tsx) */}
+    <CommitteeVideoLogo committee={committee} />
 
     <div className="flex flex-col items-start gap-2 mb-1 md:flex-row md:items-center md:mb-0">
       <h3 className="text-xl font-bold dark:text-white">
