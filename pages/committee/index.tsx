@@ -26,25 +26,28 @@ const Committee: NextPage = () => {
   useEffect(() => {
     if (!periodsData) return;
 
-    const userCommittees = session?.user?.committees || [];
+    const userCommittees =
+      session?.user?.committees?.map((committee) => committee.toLowerCase()) ||
+      [];
 
     // Viser bare aktuelle perioder
-    const filteredPeriods = periodsData.periods.filter((period: periodType) =>
-      period.committees.some((committee: string) =>
-        userCommittees.includes(committee.toLowerCase())
-      ) ||
-      period.optionalCommittees.some((committee: string) =>
-        userCommittees.includes(committee.toLowerCase())
-      )
+    const filteredPeriods = periodsData.periods.filter(
+      (period: periodType) =>
+        period.committees.some((committee: string) =>
+          userCommittees.includes(committee.toLowerCase()),
+        ) ||
+        period.optionalCommittees.some((committee: string) =>
+          userCommittees.includes(committee.toLowerCase()),
+        ),
     );
 
     setPeriods(
       filteredPeriods.map((period: periodType) => {
         const userCommittees = session?.user?.committees?.map((committee) =>
-          committee.toLowerCase()
+          committee.toLowerCase(),
         );
         const periodCommittees = period.committees.map((committee) =>
-          committee.toLowerCase()
+          committee.toLowerCase(),
         );
 
         period.optionalCommittees.forEach((committee) => {
@@ -52,7 +55,7 @@ const Committee: NextPage = () => {
         });
 
         const commonCommittees = userCommittees!.filter((committee) =>
-          periodCommittees.includes(committee)
+          periodCommittees.includes(committee),
         );
 
         let uriLink = "";
@@ -76,7 +79,7 @@ const Committee: NextPage = () => {
           committees: period.committees,
           link: uriLink,
         };
-      })
+      }),
     );
   }, [periodsData, session]);
 
