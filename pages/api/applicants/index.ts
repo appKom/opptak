@@ -24,7 +24,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
 
       const { applicants, error } = await getApplicants();
       if (error) throw new Error(error);
-      return res.status(200).json({ applicants });
+      return res.status(200).json(applicants);
     }
 
     if (req.method === "POST") {
